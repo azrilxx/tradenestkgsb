@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase/client';
 import { MOCK_PRODUCTS } from './products';
 import { FMM_COMPANIES } from './fmm-companies';
+import { FMM_COMPANIES_SCRAPED } from './fmm-companies-scraped';
 import { MALAYSIA_PORTS } from './malaysia-ports';
 import { generateMalaysiaShipments } from './malaysia-shipments';
 import {
@@ -35,11 +36,26 @@ export async function seedDatabase() {
 
     console.log(`✅ Inserted ${products?.length} products`);
 
-    // Step 2: Insert FMM Companies
+    // Step 2: Insert FMM Companies (both mock and scraped)
     console.log('🏢 Inserting FMM companies...');
+
+    // Combine mock companies with scraped real companies
+    const scrapedCompaniesForDB = FMM_COMPANIES_SCRAPED.map(c => ({
+      name: c.name,
+      country: c.country,
+      type: c.type,
+      sector: c.sector
+    }));
+
+    const allCompanies = [...FMM_COMPANIES, ...scrapedCompaniesForDB];
+
+    console.log(`   Mock companies: ${FMM_COMPANIES.length}`);
+    console.log(`   Scraped FMM companies: ${FMM_COMPANIES_SCRAPED.length}`);
+    console.log(`   Total to insert: ${allCompanies.length}`);
+
     const { data: companies, error: companiesError } = await supabase
       .from('companies')
-      .insert(FMM_COMPANIES)
+      .insert(allCompanies)
       .select();
 
     if (companiesError) {
@@ -47,7 +63,7 @@ export async function seedDatabase() {
       throw companiesError;
     }
 
-    console.log(`✅ Inserted ${companies?.length} FMM companies`);
+    console.log(`✅ Inserted ${companies?.length} FMM companies (${FMM_COMPANIES_SCRAPED.length} real + ${FMM_COMPANIES.length} mock)`);
 
     // Step 3: Insert Malaysia Ports
     console.log('🚢 Inserting Malaysia ports...');

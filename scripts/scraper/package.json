@@ -1,0 +1,16 @@
+{
+  "name": "fmm-scraper",
+  "version": "1.0.0",
+  "description": "Scraper for FMM member companies",
+  "type": "module",
+  "scripts": {
+    "scrape": "node fmm-scraper.js",
+    "scrape:all": "node fmm-scraper-all.js",
+    "debug": "node fmm-scraper-debug.js",
+    "transform": "node transform-to-tradenest.js"
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0",
+    "csv-writer": "^1.6.0"
+  }
+}
