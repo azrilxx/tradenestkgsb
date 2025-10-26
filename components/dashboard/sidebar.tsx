@@ -111,7 +111,7 @@ export function Sidebar() {
     : navigation;
 
   return (
-    <div className="w-72 bg-[#0F1419] min-h-screen fixed left-0 top-0 border-r border-gray-800/50 flex flex-col">
+    <div className="w-72 bg-[#0F1419] h-screen fixed left-0 top-0 border-r border-gray-800/50 flex flex-col overflow-hidden">
       {/* Enhanced Header */}
       <div className="px-5 py-6 border-b border-gray-800/50">
         <div className="flex items-center gap-3 mb-4">
@@ -146,7 +146,7 @@ export function Sidebar() {
       </div>
 
       {/* Enhanced Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
         {filteredNavigation.map((group) => (
           <div key={group.group} className="mb-6">
             <button
@@ -226,7 +226,7 @@ export function Sidebar() {
       </nav>
 
       {/* Enhanced Footer with User Info */}
-      <div className="border-t border-gray-800/50 bg-gray-900/30">
+      <div className="border-t border-gray-800/50 bg-gray-900/30 flex-shrink-0">
         {/* Quick Stats */}
         <div className="px-4 py-3 border-b border-gray-800/50">
           <div className="flex items-center justify-between text-xs">
