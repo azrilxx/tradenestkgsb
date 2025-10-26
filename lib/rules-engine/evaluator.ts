@@ -93,7 +93,7 @@ export class RuleEvaluator {
         matches.push({
           product_id: productId,
           company_id: context.company_id,
-          matched_conditions,
+          matched_conditions: matchedConditions,
           severity: ruleLogic.severity,
           metadata: {
             rule_type: ruleLogic.alert_type,
