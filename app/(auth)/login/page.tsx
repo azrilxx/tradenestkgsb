@@ -17,20 +17,27 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
+    console.log('🔐 Login attempt:', { email, passwordLength: password.length });
+
     try {
       const { data, error } = await signIn(email, password);
 
+      console.log('🔐 Login response:', { data, error });
+
       if (error) {
+        console.error('❌ Login error:', error);
         setError(error.message || 'Failed to sign in');
         setLoading(false);
         return;
       }
 
       if (data) {
+        console.log('✅ Login successful:', data);
         // Redirect to dashboard
         router.push('/dashboard');
       }
     } catch (err: any) {
+      console.error('❌ Login exception:', err);
       setError(err.message || 'An error occurred during sign in');
     } finally {
       setLoading(false);
@@ -107,6 +114,25 @@ export default function LoginPage() {
         <div className="mt-4 text-center">
           <p className="text-xs text-gray-500">
             Demo credentials: test@tradenest.com / password123
+          </p>
+        </div>
+
+        {/* Dev Mode Bypass */}
+        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-xs text-yellow-800 mb-2 font-semibold">
+            🔧 Development Mode
+          </p>
+          <button
+            onClick={() => {
+              console.log('🚀 Bypassing auth in dev mode');
+              router.push('/dashboard');
+            }}
+            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
+          >
+            Skip Login (Dev Mode) →
+          </button>
+          <p className="text-xs text-yellow-700 mt-2">
+            Bypass auth to test features. Remove this in production!
           </p>
         </div>
       </div>
