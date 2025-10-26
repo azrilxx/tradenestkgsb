@@ -10,6 +10,7 @@ const navigation = [
   { name: 'Analytics', href: '/dashboard/analytics', icon: '📈' },
   { name: 'Benchmarks', href: '/dashboard/benchmarks', icon: '📊' },
   { name: 'Trade Intelligence', href: '/dashboard/trade-intelligence', icon: '🔍' },
+  { name: 'Rules', href: '/dashboard/rules', icon: '🔧' },
   { name: 'Detection', href: '/detect', icon: '⚡' },
   { name: 'Settings', href: '/dashboard/settings', icon: '⚙️' },
 ];
