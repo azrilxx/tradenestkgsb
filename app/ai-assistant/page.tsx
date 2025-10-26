@@ -121,7 +121,7 @@ export default function AIAssistant() {
   }, [input, isLoading, handleSendMessage]);
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-4rem)] bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="flex flex-col h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Header */}
       <div className="flex-shrink-0 border-b border-gray-200 bg-white">
         <div className="max-w-4xl mx-auto px-4 py-4">
