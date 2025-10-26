@@ -32,7 +32,11 @@ interface TradeRemedyCalculations {
     estimatedRevenueLoss?: number;
   };
   causation: string;
-  recommendedMeasures: string[];
+  recommendedMeasures: {
+    measures: string[];
+    duration: string;
+    justification: string;
+  };
 }
 
 export default function TradeRemedyWorkbenchPage() {
