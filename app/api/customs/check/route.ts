@@ -55,10 +55,10 @@ export async function POST(request: Request) {
     // Convert benchmark_data to Map<string, number>
     let benchmarkMap: Map<string, number> | undefined;
     if (benchmark_data && typeof benchmark_data === 'object') {
-      const entries = Object.entries(benchmark_data).map(([key, value]) => [
+      const entries: [string, number][] = Object.entries(benchmark_data).map(([key, value]) => [
         key,
         typeof value === 'number' ? value : parseFloat(String(value)) || 0,
-      ]);
+      ] as [string, number]);
       benchmarkMap = new Map(entries);
     }
     
