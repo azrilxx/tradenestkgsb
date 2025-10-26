@@ -306,7 +306,7 @@ export class RuleEvaluator {
 
     if (error) throw error;
     
-    return data.map(item => ({ value: item.unit_price, date: item.shipment_date }));
+    return data.map((item: any) => ({ value: item.unit_price, date: item.shipment_date }));
   }
 
   /**
@@ -323,7 +323,7 @@ export class RuleEvaluator {
 
     if (error) throw error;
     
-    return data.map(item => ({ value: item.total_value, date: item.shipment_date }));
+    return data.map((item: any) => ({ value: item.total_value, date: item.shipment_date }));
   }
 
   /**
