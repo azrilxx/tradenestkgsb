@@ -60,7 +60,7 @@ export class RuleEvaluator {
       return matches;
     } catch (error) {
       console.error('Error evaluating rule:', error);
-      throw new Error(`Rule evaluation failed: ${error.message}`);
+      throw new Error(`Rule evaluation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
