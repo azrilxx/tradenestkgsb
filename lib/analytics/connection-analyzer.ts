@@ -134,7 +134,7 @@ export async function analyzeInterconnectedIntelligence(
             }
             : null;
         })
-        .filter((f): f is ConnectionFactor => f !== null);
+        .filter((f): f is NonNullable<typeof f> => f !== null) as ConnectionFactor[];
 
       connectedFactors.push(...productRelated);
     }
@@ -166,7 +166,7 @@ export async function analyzeInterconnectedIntelligence(
         }
         return null;
       })
-      .filter((f): f is ConnectionFactor => f !== null);
+      .filter((f): f is NonNullable<typeof f> => f !== null) as ConnectionFactor[];
 
     connectedFactors.push(...patternRelated);
 
