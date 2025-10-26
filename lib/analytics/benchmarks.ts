@@ -52,6 +52,12 @@ export interface ComparisonResult {
   recommendation: string;
 }
 
+export interface PriceTrendData {
+  date: string;
+  avg_price: number;
+  volume: number;
+}
+
 /**
  * Calculate percentiles for price data
  */
