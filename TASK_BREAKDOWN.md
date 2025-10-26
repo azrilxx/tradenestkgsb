@@ -191,14 +191,297 @@ Execute Week 1-2 deliverables to create a demo-ready prototype for seed capital 
 
 ---
 
-## 🚀 Deployment Preparation (Bonus if time allows)
+## 🚀 Phase 5: Deployment (Days 9-10) ✅ COMPLETE
 
-### Task 5.1: Vercel Deployment
-- [ ] Connect GitHub repository
-- [ ] Configure environment variables in Vercel
-- [ ] Deploy to Vercel
-- [ ] Test production build
+### Task 5.1: Vercel Deployment ✅
+- [x] Connect GitHub repository
+- [x] Configure environment variables in Vercel
+- [x] Deploy to Vercel
+- [x] Test production build
+- [x] Create vercel.json configuration
+- [x] Push deployment config to GitHub
 - [ ] Set up custom domain (optional)
+
+**Live URL:** https://tradenest.vercel.app (or similar)
+
+---
+
+## 📈 Phase 6: Platform Enhancement (Post-Deployment)
+**Objective:** Add 3 high-impact modules to differentiate from MVP and demonstrate scalability to investors
+
+### Task 6.1: Company & Transaction Drill-Down (Days 11-13)
+**Priority:** P0 (Must Have) - Critical for enterprise credibility
+
+#### Backend Implementation
+- [ ] Extend database schema with shipment metadata
+  - [ ] Create `companies` table (name, country, type: importer/exporter)
+  - [ ] Create `ports` table (name, country, code)
+  - [ ] Create `shipments` table (product_id, company_id, port_id, vessel, container_count, date)
+  - [ ] Create indexes on company_id, port_id, product_id for performance
+  - [ ] Add foreign key relationships
+- [ ] Create drill-down API endpoint
+  - [ ] Build `/api/trade/drilldown` GET endpoint
+  - [ ] Implement query filters: hs_code, company, country, port, date_range
+  - [ ] Add pagination support (page, limit)
+  - [ ] Return aggregated stats: total_shipments, total_volume, top_partners
+  - [ ] Optimize with database views for common queries
+
+#### Frontend Implementation
+- [ ] Create Trade Intelligence page
+  - [ ] Build search interface with multi-select filters
+  - [ ] Create company autocomplete search
+  - [ ] Add date range picker component
+  - [ ] Build country/port dropdown filters
+- [ ] Create drill-down results table
+  - [ ] Display shipment history with company, port, vessel, volume
+  - [ ] Add sortable columns (date, volume, company)
+  - [ ] Implement pagination controls
+  - [ ] Add "View Company Profile" action button
+- [ ] Create company profile modal/page
+  - [ ] Show company details (name, country, total shipments)
+  - [ ] Display top products imported/exported
+  - [ ] Show shipment timeline chart
+  - [ ] List related alerts for this company
+- [ ] Add to navigation sidebar
+
+#### Data Population
+- [ ] Generate mock company data (50 realistic companies)
+  - [ ] Mix of importers and exporters
+  - [ ] Diversify across countries (China, USA, Germany, Singapore, etc.)
+  - [ ] Create company naming patterns (industry-appropriate)
+- [ ] Generate mock port data (20 major global ports)
+- [ ] Generate mock shipment history (500+ records)
+  - [ ] Link shipments to existing products
+  - [ ] Create realistic vessel names
+  - [ ] Distribute across 12-month period
+- [ ] Seed via `/api/seed` or dedicated script
+
+**Business Value:** Allows users to investigate specific companies/routes, critical for compliance officers
+
+---
+
+### Task 6.2: Benchmark & Peer Comparison (Days 14-16)
+**Priority:** P0 (Must Have) - Shows market intelligence depth
+
+#### Backend Implementation
+- [ ] Create benchmark calculation engine
+  - [ ] Build `lib/analytics/benchmarks.ts`
+  - [ ] Implement average price calculation per HS code
+  - [ ] Calculate price percentiles (25th, 50th, 75th, 90th)
+  - [ ] Identify top exporters by volume and value
+  - [ ] Calculate market share percentages
+  - [ ] Compute price volatility metrics
+- [ ] Create benchmark API endpoints
+  - [ ] Build `/api/benchmark` GET endpoint
+  - [ ] Accept filters: hs_code, country, date_range
+  - [ ] Return: avg_price, price_range, top_exporters, market_distribution
+  - [ ] Add caching layer for performance (15-min cache)
+  - [ ] Handle edge cases (no data, single data point)
+
+#### Frontend Implementation
+- [ ] Create Market Benchmarks page
+  - [ ] Build HS code search/select interface
+  - [ ] Add country filter dropdown
+  - [ ] Create date range selector
+- [ ] Create benchmark dashboard widgets
+  - [ ] Build "Average Price" KPI card with trend indicator
+  - [ ] Create "Price Distribution" box plot chart
+  - [ ] Build "Top 5 Exporters" bar chart with market share
+  - [ ] Create "Partner Country Mix" pie chart
+  - [ ] Add "Price vs Volume" scatter plot
+- [ ] Create comparison table
+  - [ ] Show user's prices vs market average
+  - [ ] Highlight outliers (>20% deviation)
+  - [ ] Add visual indicators (above/below market)
+  - [ ] Include percentile ranking
+- [ ] Integrate into product detail pages
+  - [ ] Add "View Benchmark" button on products page
+  - [ ] Show inline comparison on alert details
+
+#### Analytics Engine
+- [ ] Implement statistical calculations
+  - [ ] Mean, median, mode for prices
+  - [ ] Standard deviation and variance
+  - [ ] Percentile calculations (using quantile function)
+  - [ ] Market concentration index (Herfindahl)
+- [ ] Create aggregation functions
+  - [ ] Group by exporter country
+  - [ ] Group by time period (monthly/quarterly)
+  - [ ] Aggregate by product category
+
+**Business Value:** Enables users to contextualize their data against market norms, essential for identifying true anomalies vs market shifts
+
+---
+
+### Task 6.3: Custom Rule Builder (Days 17-19)
+**Priority:** P1 (Should Have) - Platform configurability = enterprise appeal
+
+#### Backend Implementation
+- [ ] Design rule schema and storage
+  - [ ] Create `custom_rules` table (name, description, logic_json, user_id, active, created_at)
+  - [ ] Define JSON schema for rule logic:
+    ```json
+    {
+      "conditions": [
+        {"field": "volume_change_pct", "operator": ">", "value": 30, "period": "3_months"},
+        {"field": "freight_change_pct", "operator": "<", "value": -20, "period": "3_months"}
+      ],
+      "logic": "AND",
+      "alert_type": "CUSTOM_PATTERN",
+      "severity": "high"
+    }
+    ```
+  - [ ] Create indexes on user_id and active status
+- [ ] Build rule evaluation engine
+  - [ ] Create `lib/rules-engine/evaluator.ts`
+  - [ ] Implement condition parser (field, operator, value, period)
+  - [ ] Support operators: >, <, >=, <=, ==, !=, BETWEEN
+  - [ ] Support AND/OR logic between conditions
+  - [ ] Integrate with existing detection pipeline
+  - [ ] Execute custom rules during `/api/detect` runs
+- [ ] Create rule management API
+  - [ ] Build `/api/rules` CRUD endpoints (GET, POST, PUT, DELETE)
+  - [ ] Add validation for rule syntax
+  - [ ] Implement rule testing endpoint `/api/rules/test`
+  - [ ] Return historical match count for rule preview
+
+#### Frontend Implementation
+- [ ] Create Rule Builder interface
+  - [ ] Build drag-and-drop or form-based condition builder
+  - [ ] Create field selector dropdown (price, volume, freight, fx_rate, tariff)
+  - [ ] Add operator selector (>, <, BETWEEN, etc.)
+  - [ ] Create value input with unit labels (%, USD, days)
+  - [ ] Add time period selector (7 days, 1 month, 3 months, 6 months)
+- [ ] Create rule composition UI
+  - [ ] Support multiple conditions (+ Add Condition button)
+  - [ ] Add AND/OR toggle between conditions
+  - [ ] Create visual rule summary ("If X AND Y, then alert")
+  - [ ] Add severity selector (Critical, High, Medium, Low)
+  - [ ] Add rule name and description fields
+- [ ] Create rule testing interface
+  - [ ] "Test Rule" button with loading state
+  - [ ] Display preview: "X matches found in last 6 months"
+  - [ ] Show sample matching records in table
+  - [ ] Highlight which conditions were matched
+- [ ] Create rule management page
+  - [ ] List all custom rules (active/inactive)
+  - [ ] Add toggle to activate/deactivate rules
+  - [ ] Add edit and delete actions
+  - [ ] Show rule performance stats (alerts generated, false positive rate)
+- [ ] Add to navigation sidebar
+
+#### Rule Templates
+- [ ] Create pre-built rule templates
+  - [ ] "Sudden Volume Surge" (volume +50% in 1 month)
+  - [ ] "Price-Freight Mismatch" (price +30%, freight -20%)
+  - [ ] "Tariff Evasion Pattern" (price drop after tariff increase)
+  - [ ] "Round-Tripping Detection" (import then export same product)
+  - [ ] "Under-Invoicing Risk" (price <30% of market average)
+- [ ] Allow users to customize templates
+- [ ] Add "Load Template" option in rule builder
+
+**Business Value:** Empowers users to define their own risk patterns, making the platform adaptable to various use cases (AML, dumping, evasion)
+
+---
+
+## 📊 Phase 6 Acceptance Criteria
+
+### Company & Transaction Drill-Down (Task 6.1)
+- [ ] User can search and filter by company name
+- [ ] User can view shipment history for any company
+- [ ] Company profiles show top products and partners
+- [ ] Drill-down results load in <2 seconds
+- [ ] Pagination handles 500+ records smoothly
+
+### Benchmark & Peer Comparison (Task 6.2)
+- [ ] Benchmark dashboard displays for any HS code
+- [ ] Top 5 exporters chart renders correctly
+- [ ] Price comparison highlights outliers visually
+- [ ] Market average calculations are accurate
+- [ ] User can compare their data against market norms
+
+### Custom Rule Builder (Task 6.3)
+- [ ] User can create rules with 2+ conditions
+- [ ] Rule testing shows historical match count
+- [ ] Custom rules execute during detection runs
+- [ ] Rules can be activated/deactivated
+- [ ] At least 3 rule templates are available
+
+---
+
+## 🎯 Updated Priority Levels
+
+**P0 (Must Have - Investor Demo):**
+- Tasks 1.1-1.3, 2.1-2.2, 3.2-3.3, 4.1, 4.2, 5.1
+- **Task 6.1 (Company Drill-Down)**
+- **Task 6.2 (Benchmarks)**
+
+**P1 (Should Have - Competitive Differentiation):**
+- Tasks 3.1, 3.4, 3.5, 4.3
+- **Task 6.3 (Custom Rule Builder)**
+
+**P2 (Nice to Have):**
+- Tasks 4.4, 4.5, Custom domain
+
+---
+
+## 📝 Updated Daily Progress Tracking
+
+### Days 1-8 ✅
+- [x] Phases 1-4 Complete (Foundation, Detection, UI, Polish)
+
+### Days 9-10 ✅
+- [x] Phase 5 Complete (Deployment to Vercel)
+
+### Days 11-13 (Phase 6.1)
+- [ ] Complete Company & Transaction Drill-Down module
+- [ ] Seed company and shipment data
+- [ ] Test drill-down UI and filters
+
+### Days 14-16 (Phase 6.2)
+- [ ] Complete Benchmark & Peer Comparison module
+- [ ] Build benchmark calculation engine
+- [ ] Create benchmark visualization dashboard
+
+### Days 17-19 (Phase 6.3)
+- [ ] Complete Custom Rule Builder module
+- [ ] Build rule evaluation engine
+- [ ] Create rule builder UI with templates
+
+---
+
+## 🔄 Updated Dependency Map
+
+```
+Phase 1 (Foundation) → Phase 2 (Detection) → Phase 3 (UI) → Phase 4 (Polish) → Phase 5 (Deployment) ✅
+                                                                                      ↓
+                                                                              Phase 6 (Enhancement)
+                                                                                      ↓
+                                                    Task 6.1 (Company Drill-Down) → Task 6.2 (Benchmarks)
+                                                                                      ↓
+                                                                              Task 6.3 (Custom Rules)
+                                                                              (integrates with Phase 2)
+```
+
+---
+
+## 🎯 Strategic Rationale: Why These 3 Modules?
+
+### Why NOT all 9 modules?
+- **Time-to-funding:** 3 modules = 2-3 weeks vs 9 modules = 6+ months
+- **Focus over breadth:** Deep implementation > surface-level features
+- **Prove scalability:** Show architectural flexibility without over-engineering
+
+### Why THESE 3 modules?
+1. **Company Drill-Down:** Addresses #1 investor question: "Can this scale beyond alerts?"
+2. **Benchmarks:** Shows you have market intelligence (competitor parity with Panjiva)
+3. **Custom Rules:** Demonstrates platform flexibility (appeals to enterprise buyers)
+
+### What comes AFTER funding?
+- Modules 4-9 become your **Series A roadmap**
+- Hire dev team to execute parallel tracks
+- Add real data integrations (UN Comtrade, Freightos APIs)
+- Build Python FastAPI microservices for heavy analytics
 
 ---
 
