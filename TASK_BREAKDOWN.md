@@ -244,19 +244,82 @@ Execute Week 1-2 deliverables to create a demo-ready prototype for seed capital 
   - [ ] List related alerts for this company
 - [ ] Add to navigation sidebar
 
-#### Data Population
-- [ ] Generate mock company data (50 realistic companies)
-  - [ ] Mix of importers and exporters
-  - [ ] Diversify across countries (China, USA, Germany, Singapore, etc.)
-  - [ ] Create company naming patterns (industry-appropriate)
-- [ ] Generate mock port data (20 major global ports)
-- [ ] Generate mock shipment history (500+ records)
-  - [ ] Link shipments to existing products
-  - [ ] Create realistic vessel names
-  - [ ] Distribute across 12-month period
-- [ ] Seed via `/api/seed` or dedicated script
+#### Data Population (Malaysia-Focused - FMM Member Alignment)
+- [ ] Generate FMM-aligned Malaysian company data (60 realistic manufacturers)
+  - [ ] **Steel & Metals** (12 companies) - Primary demo sector
+    - [ ] "MegaSteel Industries Sdn Bhd", "AsiaPac Metal Trading Sdn Bhd"
+    - [ ] HS Codes: 7208 (Flat-rolled steel), 7214 (Iron/steel bars)
+  - [ ] **Electronics & Electrical** (15 companies) - High-value sector
+    - [ ] "TechCom Solutions Sdn Bhd", "ElectroNusa Manufacturing Sdn Bhd"
+    - [ ] HS Codes: 8542 (Integrated circuits), 8471 (Computers), 8517 (Telecom)
+  - [ ] **Chemicals & Petrochemicals** (12 companies) - Complex pricing
+    - [ ] "PetroChemAsia Sdn Bhd", "PolymerTech Industries Sdn Bhd"
+    - [ ] HS Codes: 2902 (Hydrocarbons), 3901 (Polymers), 2710 (Petroleum oils)
+  - [ ] **Food & Beverage** (10 companies) - Agricultural imports
+    - [ ] "Mega Food Processors Sdn Bhd", "AgroTrade Malaysia Sdn Bhd"
+    - [ ] HS Codes: 1001 (Wheat), 1507 (Soybean oil), 1701 (Cane sugar)
+  - [ ] **Textiles & Apparel** (6 companies) - Labor-intensive
+    - [ ] "FabricCraft Industries Sdn Bhd", "GarmentPro Malaysia Sdn Bhd"
+    - [ ] HS Codes: 5205 (Cotton yarn), 6204 (Women's suits), 6109 (T-shirts)
+  - [ ] **Automotive & Parts** (5 companies) - Supply chain complexity
+    - [ ] "AutoComponents Malaysia Sdn Bhd", "MotorParts Asia Sdn Bhd"
+    - [ ] HS Codes: 8708 (Vehicle parts), 8703 (Motor cars), 4011 (Tires)
+  - [ ] Use authentic Malaysian business naming ("Sdn Bhd", "Berhad")
+  - [ ] Mix of importers (70%) and exporters (30%) to reflect Malaysia's trade profile
+- [ ] Generate Malaysia-centric port data (25 ports)
+  - [ ] **Malaysian ports (6):**
+    - [ ] Port Klang (largest, general cargo)
+    - [ ] Penang Port (northern hub, electronics)
+    - [ ] Johor Port (southern gateway, Singapore proximity)
+    - [ ] Kuantan Port (East Coast, bulk commodities)
+    - [ ] Bintulu Port (Sarawak, petrochemicals)
+    - [ ] Tanjung Pelepas (containers, automotive)
+  - [ ] **Major trading partner ports (19):**
+    - [ ] China: Shanghai, Shenzhen, Ningbo, Qingdao, Guangzhou
+    - [ ] Singapore: Port of Singapore
+    - [ ] ASEAN: Bangkok, Ho Chi Minh, Jakarta, Manila
+    - [ ] Asia-Pacific: Tokyo, Busan, Hong Kong, Sydney
+    - [ ] Europe: Rotterdam, Hamburg, Antwerp
+    - [ ] Americas: Los Angeles, Long Beach, Santos
+- [ ] Generate Malaysia-focused shipment history (800+ records)
+  - [ ] **Primary trade lanes (60% of shipments):**
+    - [ ] China → Malaysia (steel, electronics, chemicals from Shanghai/Shenzhen)
+    - [ ] Singapore → Malaysia (re-exports, high-value goods)
+    - [ ] Malaysia → Singapore (export processing)
+  - [ ] **Secondary trade lanes (30%):**
+    - [ ] Japan/South Korea → Malaysia (automotive, machinery)
+    - [ ] Europe → Malaysia (chemicals, machinery)
+    - [ ] Malaysia → ASEAN (regional exports)
+  - [ ] **Long-haul trade (10%):**
+    - [ ] Americas → Malaysia (agricultural commodities)
+    - [ ] Middle East → Malaysia (petrochemicals)
+  - [ ] Link shipments to sector-appropriate HS codes
+  - [ ] Create realistic vessel names (container ships, bulk carriers, tankers)
+  - [ ] Distribute across 18-month period (to show historical trends)
+  - [ ] Use MYR pricing aligned with BNM FX rates (MYR/USD, MYR/CNY, MYR/SGD)
+  - [ ] Inject sector-specific anomalies for demo:
+    - [ ] Steel: China dumping scenario (price 40% below market)
+    - [ ] Electronics: Singapore re-routing (tariff avoidance pattern)
+    - [ ] Chemicals: Under-invoicing (price vs. benchmark deviation)
+    - [ ] F&B: Volume surge during tariff change window
+- [ ] Create FMM-focused demo case studies (3 scenarios)
+  - [ ] **Case 1: Steel Sector** (Primary pitch narrative)
+    - [ ] "MegaSteel Industries detects Chinese supplier under-invoicing by 42%"
+    - [ ] "TradeNest flags anti-dumping duty evasion, saves RM 2.3M in penalties"
+  - [ ] **Case 2: Electronics Sector**
+    - [ ] "TechCom Solutions identifies Singapore re-routing scheme"
+    - [ ] "Integrated circuits routed through Singapore to claim CPTPP tariff benefits"
+  - [ ] **Case 3: Chemicals Sector**
+    - [ ] "PetroChemAsia discovers price-freight mismatch indicating TBML"
+    - [ ] "Polymer imports show 30% price drop + 25% freight spike = red flag"
+- [ ] Seed via enhanced `/api/seed` endpoint with FMM data flag
 
-**Business Value:** Allows users to investigate specific companies/routes, critical for compliance officers
+**Business Value:**
+- Demonstrates TradeNest across ALL FMM sectors (not just steel)
+- Provides realistic Malaysian trade scenarios for investor demos
+- Shows platform adaptability (horizontal solution vs vertical tool)
+- Creates credible go-to-market narrative: "Built for FMM's 3,000+ members"
+- Enables sector-specific sales pitches while maintaining unified platform
 
 ---
 
