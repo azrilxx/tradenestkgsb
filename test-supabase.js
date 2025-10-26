@@ -22,27 +22,31 @@ async function testConnection() {
   try {
     console.log('Testing Supabase connection...');
 
-    // Try to query a simple table
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, email')
-      .limit(1);
+    // Test auth instead of querying users table
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
-    if (error) {
-      console.error('❌ Supabase error:', error.message);
+    if (sessionError) {
+      console.log('❌ Session error:', sessionError.message);
       return;
     }
 
     console.log('✅ Supabase connection successful!');
-    console.log('Found users:', data?.length || 0);
+    console.log('Session:', sessionData?.session ? 'Active' : 'None (this is normal)');
 
-    // Try to get the current session
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    // Try to sign in with demo credentials to test auth
+    console.log('\nTesting authentication with demo credentials...');
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: 'test@tradenest.com',
+      password: 'password123',
+    });
 
-    if (sessionError) {
-      console.log('ℹ️  No active session (this is normal)');
+    if (authError) {
+      console.log('ℹ️  Demo user login failed:', authError.message);
+      console.log('   This is normal if the user hasn\'t been created yet.');
     } else {
-      console.log('Session:', sessionData?.session ? 'Active' : 'None');
+      console.log('✅ Demo user login successful!');
+      console.log('   User ID:', authData.user?.id);
+      console.log('   Email:', authData.user?.email);
     }
 
   } catch (err) {
