@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
           .order('executed_at', { ascending: false })
           .limit(10);
 
-        const performance = stats?.length > 0 ? {
+        const performance = stats && stats.length > 0 ? {
           total_executions: stats.length,
           avg_matches_found: stats.reduce((sum, s) => sum + (s.matches_found || 0), 0) / stats.length,
           avg_execution_time_ms: stats.reduce((sum, s) => sum + (s.execution_time_ms || 0), 0) / stats.length,
