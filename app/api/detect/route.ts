@@ -110,7 +110,7 @@ async function runCustomRulesDetection() {
         
       } catch (error) {
         console.error(`Error executing rule ${rule.name}:`, error);
-        errors.push(`Failed to execute rule ${rule.name}: ${error.message}`);
+        errors.push(`Failed to execute rule ${rule.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
 
@@ -126,7 +126,7 @@ async function runCustomRulesDetection() {
     return {
       alertsCreated: 0,
       rulesExecuted: 0,
-      errors: [`Custom rules detection failed: ${error.message}`]
+      errors: [`Custom rules detection failed: ${error instanceof Error ? error.message : 'Unknown error'}`]
     };
   }
 }
