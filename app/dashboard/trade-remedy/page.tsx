@@ -7,6 +7,34 @@ import { Badge } from '@/components/ui/badge';
 import { generateAndDownloadTradeRemedyReport } from '@/lib/pdf/evidence-generator';
 import { TRADE_REMEDY_TEMPLATES, type TradeRemedyTemplate } from '@/lib/trade-remedy/templates';
 
+// Define types for calculations
+type SeverityLevel = 'severe' | 'significant' | 'moderate' | 'minimal';
+
+interface TradeRemedyCalculations {
+  severity: {
+    level: SeverityLevel;
+    description: string;
+  };
+  dumping: {
+    margin: number;
+    amount: number;
+    currency: string;
+  };
+  price: {
+    exportPrice: number;
+    normalValue: number;
+    depression: number;
+  };
+  volume: {
+    impact?: number;
+  };
+  injury: {
+    estimatedRevenueLoss?: number;
+  };
+  causation: string;
+  recommendedMeasures: string[];
+}
+
 export default function TradeRemedyWorkbenchPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
 
@@ -24,7 +52,7 @@ export default function TradeRemedyWorkbenchPage() {
     currency: 'USD',
   });
 
-  const [calculations, setCalculations] = useState<any>(null);
+  const [calculations, setCalculations] = useState<TradeRemedyCalculations | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,12 +138,12 @@ export default function TradeRemedyWorkbenchPage() {
     }
   };
 
-  const severityColors = {
+  const severityColors: Record<SeverityLevel, string> = {
     severe: 'bg-red-100 text-red-800',
     significant: 'bg-orange-100 text-orange-800',
     moderate: 'bg-yellow-100 text-yellow-800',
     minimal: 'bg-blue-100 text-blue-800',
-  };
+  } as const;
 
   return (
     <div className="space-y-6">
