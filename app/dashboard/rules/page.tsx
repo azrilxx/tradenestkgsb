@@ -301,7 +301,7 @@ export default function RulesPage() {
                     <Badge className={getSeverityColor(rule.severity)}>
                       {rule.severity}
                     </Badge>
-                    <Badge variant={rule.active ? 'default' : 'outline'}>
+                    <Badge variant={rule.active ? 'resolved' : 'default'}>
                       {rule.active ? 'Active' : 'Inactive'}
                     </Badge>
                   </div>
