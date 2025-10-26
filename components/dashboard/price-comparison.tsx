@@ -177,7 +177,7 @@ export default function PriceComparison({
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Percentile Rank</span>
-                  <Badge variant="outline">
+                  <Badge variant="default">
                     {comparison.percentile_rank.toFixed(1)}th percentile
                   </Badge>
                 </div>
@@ -220,7 +220,7 @@ export default function PriceComparison({
 
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Price Volatility</span>
-                  <Badge variant="outline" className="text-orange-600">
+                  <Badge variant="high" className="text-orange-600">
                     {comparison.benchmark_context.price_volatility.toFixed(2)}%
                   </Badge>
                 </div>

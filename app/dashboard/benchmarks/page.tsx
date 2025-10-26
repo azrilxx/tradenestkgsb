@@ -300,7 +300,7 @@ export default function MarketBenchmarksPage() {
                 ))}
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Volatility</span>
-                  <Badge variant="outline" className="text-orange-600">
+                  <Badge variant="high" className="text-orange-600">
                     {benchmarkData.price_volatility.toFixed(2)}%
                   </Badge>
                 </div>
@@ -396,7 +396,7 @@ export default function MarketBenchmarksPage() {
                       {product.description}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <Badge variant="outline">{product.category}</Badge>
+                      <Badge variant="default">{product.category}</Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {formatNumber(product.total_volume)}
