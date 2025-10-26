@@ -170,6 +170,22 @@ export async function analyzeInterconnectedIntelligence(
 
     connectedFactors.push(...patternRelated);
 
+    // NEW: Find cross-product correlations (sector-wide patterns)
+    const crossProductRelated = findCrossProductCorrelations(primaryAnomaly, relatedAlerts);
+    connectedFactors.push(...crossProductRelated);
+
+    // NEW: Find geographic proximity correlations
+    const geographicRelated = findGeographicCorrelations(primaryAnomaly, relatedAlerts);
+    connectedFactors.push(...geographicRelated);
+
+    // NEW: Detect circular dependencies
+    const circularDeps = detectCircularDependencies(primaryAnomaly, relatedAlerts);
+    connectedFactors.push(...circularDeps);
+
+    // NEW: Historical pattern matching
+    const historicalMatches = findHistoricalPatterns(primaryAnomaly, relatedAlerts, cutoffDate);
+    connectedFactors.push(...historicalMatches);
+
     // 3. Deduplicate and sort by correlation score
     const uniqueFactors = Array.from(
       new Map(connectedFactors.map((f) => [f.id, f])).values()
@@ -476,4 +492,170 @@ function calculateRiskAssessment(
     risk_factors: riskFactors,
     mitigation_priority: priority,
   };
+}
+
+/**
+ * Find cross-product correlations (sector-wide patterns)
+ */
+function findCrossProductCorrelations(
+  primaryAnomaly: any,
+  relatedAlerts: any[]
+): ConnectionFactor[] {
+  const factors: ConnectionFactor[] = [];
+
+  // Find anomalies in the same sector/category even with different products
+  relatedAlerts.forEach((alert: any) => {
+    const anom = Array.isArray(alert.anomalies) ? alert.anomalies[0] : alert.anomalies;
+    if (!anom || !anom.product_id || !primaryAnomaly.product_id) return;
+
+    // Check if products are in same category (if we have category data)
+    const sameCategory = anom.details?.category === primaryAnomaly.details?.category;
+
+    if (sameCategory && anom.type === primaryAnomaly.type) {
+      factors.push({
+        id: alert.id,
+        type: anom.type,
+        alert_id: alert.id,
+        timestamp: alert.created_at,
+        severity: anom.severity,
+        product_id: anom.product_id,
+        details: anom.details,
+        correlation_score: 0.55, // Medium correlation for sector-wide patterns
+      });
+    }
+  });
+
+  return factors.slice(0, 10); // Limit to top 10
+}
+
+/**
+ * Find geographic proximity correlations
+ */
+function findGeographicCorrelations(
+  primaryAnomaly: any,
+  relatedAlerts: any[]
+): ConnectionFactor[] {
+  const factors: ConnectionFactor[] = [];
+
+  // Check for geographic proximity in details
+  const primaryCountry = primaryAnomaly.details?.country || primaryAnomaly.details?.origin;
+
+  relatedAlerts.forEach((alert: any) => {
+    const anom = Array.isArray(alert.anomalies) ? alert.anomalies[0] : alert.anomalies;
+    if (!anom) return;
+
+    const alertCountry = anom.details?.country || anom.details?.origin;
+
+    // Same country/region correlation
+    if (primaryCountry && alertCountry && primaryCountry === alertCountry) {
+      factors.push({
+        id: alert.id,
+        type: anom.type,
+        alert_id: alert.id,
+        timestamp: alert.created_at,
+        severity: anom.severity,
+        product_id: anom.product_id,
+        details: anom.details,
+        correlation_score: 0.45,
+      });
+    }
+  });
+
+  return factors.slice(0, 10);
+}
+
+/**
+ * Detect circular dependencies (A affects B affects A patterns)
+ */
+function detectCircularDependencies(
+  primaryAnomaly: any,
+  relatedAlerts: any[]
+): ConnectionFactor[] {
+  const factors: ConnectionFactor[] = [];
+
+  // Look for complementary bidirectional relationships
+  const bidirectionalPatterns = [
+    ['price_spike', 'freight_surge'],
+    ['tariff_change', 'price_spike'],
+    ['fx_volatility', 'price_spike'],
+  ];
+
+  relatedAlerts.forEach((alert: any) => {
+    const anom = Array.isArray(alert.anomalies) ? alert.anomalies[0] : alert.anomalies;
+    if (!anom) return;
+
+    // Check if there's a bidirectional relationship
+    const isBidirectional = bidirectionalPatterns.some(
+      ([type1, type2]) =>
+        (primaryAnomaly.type === type1 && anom.type === type2) ||
+        (primaryAnomaly.type === type2 && anom.type === type1)
+    );
+
+    if (isBidirectional) {
+      factors.push({
+        id: alert.id,
+        type: anom.type,
+        alert_id: alert.id,
+        timestamp: alert.created_at,
+        severity: anom.severity,
+        product_id: anom.product_id,
+        details: { ...anom.details, circular_dependency: true },
+        correlation_score: 0.65, // Higher score for circular dependencies
+      });
+    }
+  });
+
+  return factors.slice(0, 5);
+}
+
+/**
+ * Find historical patterns
+ * Match similar patterns from earlier time periods
+ */
+function findHistoricalPatterns(
+  primaryAnomaly: any,
+  relatedAlerts: any[],
+  cutoffDate: Date
+): ConnectionFactor[] {
+  const factors: ConnectionFactor[] = [];
+
+  // Group anomalies by type and time
+  const typeGroups: Record<string, any[]> = {};
+
+  relatedAlerts.forEach((alert: any) => {
+    const anom = Array.isArray(alert.anomalies) ? alert.anomalies[0] : alert.anomalies;
+    if (!anom) return;
+
+    if (!typeGroups[anom.type]) {
+      typeGroups[anom.type] = [];
+    }
+    typeGroups[anom.type].push({ alert, anomaly: anom });
+  });
+
+  // Look for recurring patterns
+  Object.entries(typeGroups).forEach(([type, occurrences]) => {
+    if (occurrences.length >= 3) {
+      // Multiple occurrences suggest historical pattern
+      occurrences.forEach(({ alert, anomaly }) => {
+        const timeDiff =
+          (Date.now() - new Date(alert.created_at).getTime()) / (1000 * 60 * 60 * 24);
+
+        if (timeDiff > 14) {
+          // Historical (more than 2 weeks ago)
+          factors.push({
+            id: alert.id,
+            type: anomaly.type,
+            alert_id: alert.id,
+            timestamp: alert.created_at,
+            severity: anomaly.severity,
+            product_id: anomaly.product_id,
+            details: { ...anomaly.details, historical_pattern: true, occurrences: occurrences.length },
+            correlation_score: 0.4,
+          });
+        }
+      });
+    }
+  });
+
+  return factors.slice(0, 10);
 }

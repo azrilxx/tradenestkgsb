@@ -71,10 +71,23 @@ export async function GET(request: Request) {
       endDate,
     });
 
+    // Calculate trend data for charts
+    const trends = await calculateTrendData({
+      hsCode,
+      company,
+      country,
+      port,
+      startDate,
+      endDate,
+    });
+
+    // Add anomaly flags to shipments
+    const shipmentsWithAnomalies = await addAnomalyFlags(shipments || [], stats.averagePrice);
+
     return NextResponse.json({
       success: true,
       data: {
-        shipments: shipments || [],
+        shipments: shipmentsWithAnomalies,
         pagination: {
           page,
           limit,
@@ -84,6 +97,7 @@ export async function GET(request: Request) {
           hasPrev: page > 1,
         },
         stats,
+        trends,
       },
     });
 
@@ -208,4 +222,173 @@ async function calculateDrillDownStats(filters: {
       topCountries: [],
     };
   }
+}
+
+/**
+ * Calculate trend data for time-series charts
+ */
+async function calculateTrendData(filters: {
+  hsCode?: string | null;
+  company?: string | null;
+  country?: string | null;
+  port?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+}) {
+  try {
+    // Build trend query
+    let trendQuery = supabase
+      .from('shipment_details')
+      .select('shipment_date, total_value, unit_price, weight_kg, origin_country');
+
+    // Apply same filters as main query
+    if (filters.hsCode) {
+      trendQuery = trendQuery.eq('hs_code', filters.hsCode);
+    }
+
+    if (filters.company) {
+      trendQuery = trendQuery.ilike('company_name', `%${filters.company}%`);
+    }
+
+    if (filters.country) {
+      trendQuery = trendQuery.or(`origin_country.eq.${filters.country},destination_country.eq.${filters.country}`);
+    }
+
+    if (filters.port) {
+      trendQuery = trendQuery.or(`origin_port_name.ilike.%${filters.port}%,destination_port_name.ilike.%${filters.port}%`);
+    }
+
+    if (filters.startDate) {
+      trendQuery = trendQuery.gte('shipment_date', filters.startDate);
+    }
+
+    if (filters.endDate) {
+      trendQuery = trendQuery.lte('shipment_date', filters.endDate);
+    }
+
+    trendQuery = trendQuery.order('shipment_date', { ascending: true });
+
+    const { data: trendData, error } = await trendQuery;
+
+    if (error || !trendData || trendData.length === 0) {
+      return {
+        volumeOverTime: [],
+        priceOverTime: [],
+        valueByCountry: [],
+      };
+    }
+
+    // Group by month for volume trend
+    const monthlyVolume = trendData.reduce((acc, shipment) => {
+      const month = shipment.shipment_date.substring(0, 7); // YYYY-MM
+      if (!acc[month]) {
+        acc[month] = { month, shipments: 0, totalWeight: 0 };
+      }
+      acc[month].shipments += 1;
+      acc[month].totalWeight += shipment.weight_kg || 0;
+      return acc;
+    }, {} as Record<string, { month: string; shipments: number; totalWeight: number }>);
+
+    const volumeOverTime = Object.values(monthlyVolume).sort((a, b) => a.month.localeCompare(b.month));
+
+    // Group by month for price trend
+    const monthlyPrice = trendData.reduce((acc, shipment) => {
+      const month = shipment.shipment_date.substring(0, 7); // YYYY-MM
+      if (!acc[month]) {
+        acc[month] = { month, totalPrice: 0, count: 0 };
+      }
+      acc[month].totalPrice += shipment.unit_price || 0;
+      acc[month].count += 1;
+      return acc;
+    }, {} as Record<string, { month: string; totalPrice: number; count: number }>);
+
+    const priceOverTime = Object.entries(monthlyPrice)
+      .map(([month, data]) => ({
+        month,
+        avgPrice: Math.round((data.totalPrice / data.count) * 100) / 100,
+      }))
+      .sort((a, b) => a.month.localeCompare(b.month));
+
+    // Group by country for market share
+    const countryValue = trendData.reduce((acc, shipment) => {
+      const country = shipment.origin_country;
+      if (!acc[country]) {
+        acc[country] = { country, totalValue: 0, shipments: 0 };
+      }
+      acc[country].totalValue += shipment.total_value || 0;
+      acc[country].shipments += 1;
+      return acc;
+    }, {} as Record<string, { country: string; totalValue: number; shipments: number }>);
+
+    const valueByCountry = Object.values(countryValue)
+      .sort((a, b) => b.totalValue - a.totalValue)
+      .slice(0, 5);
+
+    return {
+      volumeOverTime,
+      priceOverTime,
+      valueByCountry,
+    };
+
+  } catch (error) {
+    console.error('Trend calculation error:', error);
+    return {
+      volumeOverTime: [],
+      priceOverTime: [],
+      valueByCountry: [],
+    };
+  }
+}
+
+/**
+ * Add anomaly flags to shipments based on price deviation
+ */
+async function addAnomalyFlags(shipments: any[], averagePrice: number) {
+  if (!shipments || shipments.length === 0 || !averagePrice) {
+    return shipments;
+  }
+
+  // Calculate standard deviation for price
+  const prices = shipments.map(s => s.unit_price || 0);
+  const mean = prices.reduce((sum, p) => sum + p, 0) / prices.length;
+  const variance = prices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / prices.length;
+  const stdDev = Math.sqrt(variance);
+
+  return shipments.map(shipment => {
+    const price = shipment.unit_price || 0;
+    const deviation = ((price - averagePrice) / averagePrice) * 100;
+    const zScore = stdDev > 0 ? (price - mean) / stdDev : 0;
+
+    let anomalyFlag = null;
+    let riskLevel = 'normal';
+
+    // Critical: Price >30% below average (dumping suspected)
+    if (deviation <= -30) {
+      anomalyFlag = `${Math.abs(Math.round(deviation))}% below market - Dumping suspected`;
+      riskLevel = 'critical';
+    }
+    // High: Price 20-30% below average
+    else if (deviation <= -20) {
+      anomalyFlag = `${Math.abs(Math.round(deviation))}% below average - High risk`;
+      riskLevel = 'high';
+    }
+    // Medium: Price 10-20% deviation (either direction)
+    else if (Math.abs(deviation) >= 10 && Math.abs(deviation) < 20) {
+      anomalyFlag = `${Math.abs(Math.round(deviation))}% ${deviation > 0 ? 'above' : 'below'} average`;
+      riskLevel = 'medium';
+    }
+    // Unusual volume (using Z-score)
+    else if (Math.abs(zScore) > 2.5) {
+      anomalyFlag = 'Unusual pricing pattern detected';
+      riskLevel = 'medium';
+    }
+
+    return {
+      ...shipment,
+      anomaly_flag: anomalyFlag,
+      risk_level: riskLevel,
+      price_deviation: Math.round(deviation * 10) / 10,
+      z_score: Math.round(zScore * 100) / 100,
+    };
+  });
 }

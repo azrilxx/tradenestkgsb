@@ -491,6 +491,279 @@ export class EvidenceGenerator {
   }
 
   /**
+   * Generate Interconnected Intelligence Report
+   * PDF with network visualization, cascade analysis, and recommendations
+   */
+  generateInterconnectedIntelligenceReport(data: {
+    alertId: string;
+    intelligence: {
+      primary_alert: any;
+      connected_factors: any[];
+      impact_cascade: any;
+      correlation_matrix: any;
+      recommended_actions: string[];
+      risk_assessment: any;
+    };
+    networkMetrics?: any;
+    tierLimit?: boolean;
+  }): Blob {
+    // Cover Page
+    this.addCoverPage('interconnected_intelligence');
+    this.doc.addPage();
+    this.yPosition = this.margin;
+
+    // Title
+    this.doc.setFontSize(20);
+    this.doc.setTextColor(17, 24, 39);
+    this.doc.text('Interconnected Intelligence Analysis', this.margin, this.yPosition);
+    this.yPosition += 15;
+
+    // Alert Information
+    this.addSection('Primary Alert', [
+      { label: 'Alert ID', value: data.alertId },
+      { label: 'Type', value: data.intelligence.primary_alert.type },
+      { label: 'Severity', value: data.intelligence.primary_alert.severity.toUpperCase() },
+      { label: 'Timestamp', value: new Date(data.intelligence.primary_alert.timestamp).toLocaleString() },
+    ]);
+
+    // Impact Metrics
+    this.doc.setFontSize(14);
+    this.doc.setTextColor(55, 65, 81);
+    this.doc.text('Impact Metrics', this.margin, this.yPosition);
+    this.yPosition += 8;
+
+    const cascadeImpact = data.intelligence.impact_cascade.cascading_impact;
+    const riskScore = data.intelligence.risk_assessment.overall_risk;
+    const totalFactors = data.intelligence.impact_cascade.total_factors;
+
+    // Large metrics display
+    this.doc.setFontSize(16);
+    this.doc.setTextColor(220, 38, 38);
+    this.doc.text(`Cascading Impact: ${cascadeImpact}%`, this.margin, this.yPosition);
+    this.yPosition += 8;
+
+    this.doc.setFontSize(14);
+    this.doc.setTextColor(234, 88, 12);
+    this.doc.text(`Overall Risk: ${riskScore}/100`, this.margin, this.yPosition);
+    this.yPosition += 8;
+
+    this.doc.setFontSize(12);
+    this.doc.setTextColor(37, 99, 235);
+    this.doc.text(`Total Connections: ${totalFactors}`, this.margin, this.yPosition);
+    this.yPosition += 15;
+
+    // Connected Factors
+    if (data.intelligence.connected_factors.length > 0) {
+      this.doc.setFontSize(14);
+      this.doc.setTextColor(55, 65, 81);
+      this.doc.text('Connected Factors', this.margin, this.yPosition);
+      this.yPosition += 10;
+
+      this.doc.setFontSize(9);
+      const factorsToShow = data.intelligence.tierLimit
+        ? data.intelligence.connected_factors.slice(0, 5)
+        : data.intelligence.connected_factors;
+
+      factorsToShow.forEach((factor: any, idx: number) => {
+        if (this.yPosition > this.pageHeight - 60) {
+          this.doc.addPage();
+          this.yPosition = this.margin;
+        }
+
+        this.doc.setTextColor(107, 114, 128);
+        this.doc.text(`${idx + 1}. `, this.margin, this.yPosition);
+
+        this.doc.setTextColor(17, 24, 39);
+        this.doc.text(factor.type, this.margin + 15, this.yPosition);
+
+        const severity = factor.severity.toUpperCase();
+        const xPos = this.pageWidth - this.margin - 60;
+        this.doc.setTextColor(156, 163, 175);
+        this.doc.text(`Severity: ${severity}`, xPos, this.yPosition);
+
+        this.yPosition += 5;
+
+        if (factor.correlation_score) {
+          this.doc.setTextColor(75, 85, 99);
+          this.doc.text(`Correlation: ${(factor.correlation_score * 100).toFixed(0)}%`, this.margin + 15, this.yPosition);
+          this.yPosition += 5;
+        }
+
+        const timestamp = new Date(factor.timestamp).toLocaleDateString();
+        this.doc.setTextColor(156, 163, 175);
+        this.doc.text(timestamp, this.margin + 15, this.yPosition);
+        this.yPosition += 8;
+      });
+
+      if (data.intelligence.tierLimit && data.intelligence.connected_factors.length > 5) {
+        this.doc.setFontSize(10);
+        this.doc.setTextColor(37, 99, 235);
+        this.doc.text(
+          `Note: Showing top 5 connections. Upgrade to Professional to see all ${data.intelligence.connected_factors.length} connections.`,
+          this.margin,
+          this.yPosition
+        );
+        this.yPosition += 10;
+      }
+    }
+
+    // Network Metrics (if available)
+    if (data.networkMetrics) {
+      this.doc.addPage();
+      this.yPosition = this.margin;
+
+      this.doc.setFontSize(14);
+      this.doc.setTextColor(55, 65, 81);
+      this.doc.text('Network Analysis Metrics', this.margin, this.yPosition);
+      this.yPosition += 10;
+
+      if (data.networkMetrics.pagerank_scores) {
+        const pageRankEntries = Object.entries(data.networkMetrics.pagerank_scores)
+          .sort((a, b) => (b[1] as number) - (a[1] as number))
+          .slice(0, 5);
+
+        this.doc.setFontSize(10);
+        this.doc.setTextColor(75, 85, 99);
+        this.doc.text('Top Nodes by Importance (PageRank):', this.margin, this.yPosition);
+        this.yPosition += 6;
+
+        pageRankEntries.forEach(([nodeId, score]: [string, any]) => {
+          this.doc.text(`${nodeId.substring(0, 8)}: ${(score * 100).toFixed(2)}%`, this.margin + 5, this.yPosition);
+          this.yPosition += 5;
+        });
+      }
+
+      this.yPosition += 10;
+
+      if (data.networkMetrics.centrality_scores) {
+        this.doc.setFontSize(10);
+        this.doc.setTextColor(75, 85, 99);
+        this.doc.text('Critical Path Nodes (Betweenness Centrality):', this.margin, this.yPosition);
+        this.yPosition += 6;
+
+        const centralityEntries = Object.entries(data.networkMetrics.centrality_scores)
+          .sort((a, b) => (b[1] as number) - (a[1] as number))
+          .slice(0, 5);
+
+        centralityEntries.forEach(([nodeId, score]: [string, any]) => {
+          this.doc.text(`${nodeId.substring(0, 8)}: ${(score * 100).toFixed(2)}%`, this.margin + 5, this.yPosition);
+          this.yPosition += 5;
+        });
+      }
+    }
+
+    // Recommendations
+    this.doc.addPage();
+    this.yPosition = this.margin;
+
+    this.doc.setFontSize(14);
+    this.doc.setTextColor(55, 65, 81);
+    this.doc.text('Recommended Actions', this.margin, this.yPosition);
+    this.yPosition += 10;
+
+    this.doc.setFontSize(10);
+    this.doc.setTextColor(75, 85, 99);
+
+    data.intelligence.recommended_actions.forEach((action: string, idx: number) => {
+      if (this.yPosition > this.pageHeight - 60) {
+        this.doc.addPage();
+        this.yPosition = this.margin;
+      }
+
+      this.doc.setTextColor(107, 114, 128);
+      this.doc.text(`${idx + 1}.`, this.margin, this.yPosition);
+
+      this.doc.setTextColor(17, 24, 39);
+      const lines = this.doc.splitTextToSize(action, this.pageWidth - this.margin * 2 - 15);
+      this.doc.text(lines, this.margin + 12, this.yPosition);
+
+      this.yPosition += 6 * lines.length + 3;
+    });
+
+    // Risk Assessment
+    this.yPosition += 10;
+    this.doc.setFontSize(12);
+    this.doc.setTextColor(55, 65, 81);
+    this.doc.text('Risk Assessment', this.margin, this.yPosition);
+    this.yPosition += 10;
+
+    this.doc.setFontSize(10);
+    this.doc.setTextColor(75, 85, 99);
+    this.doc.text(`Priority: ${data.intelligence.risk_assessment.mitigation_priority.toUpperCase()}`, this.margin, this.yPosition);
+    this.yPosition += 8;
+
+    if (data.intelligence.risk_assessment.risk_factors && data.intelligence.risk_assessment.risk_factors.length > 0) {
+      this.doc.setTextColor(55, 65, 81);
+      this.doc.text('Risk Factors:', this.margin, this.yPosition);
+      this.yPosition += 6;
+
+      this.doc.setTextColor(75, 85, 99);
+      data.intelligence.risk_assessment.risk_factors.forEach((factor: string) => {
+        this.doc.text(`• ${factor}`, this.margin + 5, this.yPosition);
+        this.yPosition += 5;
+      });
+    }
+
+    // Footer
+    this.addFooter();
+
+    return this.doc.output('blob');
+  }
+
+  private addCoverPage(reportType: string) {
+    if (reportType === 'interconnected_intelligence') {
+      // Title
+      this.doc.setFontSize(24);
+      this.doc.setTextColor(37, 99, 235);
+      this.doc.text('Interconnected Intelligence', this.pageWidth / 2, 80, { align: 'center' });
+
+      this.doc.setFontSize(16);
+      this.doc.setTextColor(107, 114, 128);
+      this.doc.text('Network Analysis Report', this.pageWidth / 2, 100, { align: 'center' });
+
+      // Date
+      this.doc.setFontSize(12);
+      this.doc.setTextColor(75, 85, 99);
+      const dateText = format(new Date(), 'MMMM dd, yyyy');
+      this.doc.text(dateText, this.pageWidth / 2, 140, { align: 'center' });
+
+      // Generated by
+      this.doc.setFontSize(10);
+      this.doc.setTextColor(156, 163, 175);
+      this.doc.text('TradeNest Intelligence Platform', this.pageWidth / 2, 200, { align: 'center' });
+
+      this.yPosition = this.margin;
+      return;
+    }
+
+    // Use existing cover page for other types
+    this.doc.setFontSize(32);
+    this.doc.setTextColor(37, 99, 235);
+    this.doc.text('Executive Intelligence Report', this.pageWidth / 2, 80, { align: 'center' });
+
+    this.doc.setFontSize(18);
+    this.doc.setTextColor(107, 114, 128);
+    const typeLabels: Record<string, string> = {
+      executive_summary: 'Executive Summary',
+      quarterly_analysis: 'Quarterly Analysis',
+      sector_specific: 'Sector-Specific Analysis',
+      risk_assessment: 'Risk Assessment Report',
+    };
+    this.doc.text(typeLabels[reportType] || 'Intelligence Report', this.pageWidth / 2, 100, { align: 'center' });
+
+    // Date
+    this.doc.setFontSize(12);
+    this.doc.setTextColor(75, 85, 99);
+    const dateText = format(new Date(), 'MMMM dd, yyyy');
+    this.doc.text(dateText, this.pageWidth / 2, 140, { align: 'center' });
+
+    // Generated by
+    this.doc.setFontSize(10);
+    this.doc.setTextColor(156, 163, 175);
+    this.doc.text('Generated by TradeNest Intelligence Platform', this.pageWidth / 2, 240, { align: 'center' });
+  }
+
+  /**
    * Generate Executive Intelligence Report
    * Comprehensive report with interconnected analysis, insights, and scenarios
    */
@@ -933,6 +1206,39 @@ export function generateAndDownloadExecutiveReport(
   const link = document.createElement('a');
   link.href = url;
   link.download = filename || `executive-report-${data.reportType}-${Date.now()}.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Generate and download Interconnected Intelligence Report
+ */
+export function generateAndDownloadIntelligenceReport(
+  data: {
+    alertId: string;
+    intelligence: {
+      primary_alert: any;
+      connected_factors: any[];
+      impact_cascade: any;
+      correlation_matrix: any;
+      recommended_actions: string[];
+      risk_assessment: any;
+    };
+    networkMetrics?: any;
+    tierLimit?: boolean;
+  },
+  filename?: string
+) {
+  const generator = new EvidenceGenerator();
+  const blob = generator.generateInterconnectedIntelligenceReport(data);
+
+  // Create download link
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename || `intelligence-report-${data.alertId}-${Date.now()}.pdf`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

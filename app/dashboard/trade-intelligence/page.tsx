@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react';
 
 interface ShipmentData {
   id: string;
@@ -36,6 +38,10 @@ interface ShipmentData {
   destination_port_name: string;
   destination_port_code: string;
   destination_country: string;
+  anomaly_flag?: string | null;
+  risk_level?: string;
+  price_deviation?: number;
+  z_score?: number;
 }
 
 interface DrillDownStats {
@@ -62,9 +68,16 @@ interface PaginationInfo {
   hasPrev: boolean;
 }
 
+interface TrendData {
+  volumeOverTime: Array<{ month: string; shipments: number; totalWeight: number }>;
+  priceOverTime: Array<{ month: string; avgPrice: number }>;
+  valueByCountry: Array<{ country: string; totalValue: number; shipments: number }>;
+}
+
 export default function TradeIntelligencePage() {
   const [shipments, setShipments] = useState<ShipmentData[]>([]);
   const [stats, setStats] = useState<DrillDownStats | null>(null);
+  const [trends, setTrends] = useState<TrendData | null>(null);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +117,7 @@ export default function TradeIntelligencePage() {
 
       setShipments(data.data.shipments);
       setStats(data.data.stats);
+      setTrends(data.data.trends);
       setPagination(data.data.pagination);
       setCurrentPage(page);
     } catch (err) {
@@ -159,6 +173,32 @@ export default function TradeIntelligencePage() {
       return `${(kg / 1000).toFixed(1)} tons`;
     }
     return `${kg.toLocaleString()} kg`;
+  };
+
+  const getRiskColor = (riskLevel?: string) => {
+    switch (riskLevel) {
+      case 'critical':
+        return 'bg-red-50 border-l-4 border-red-500';
+      case 'high':
+        return 'bg-orange-50 border-l-4 border-orange-500';
+      case 'medium':
+        return 'bg-yellow-50 border-l-4 border-yellow-500';
+      default:
+        return '';
+    }
+  };
+
+  const getRiskBadge = (riskLevel?: string) => {
+    switch (riskLevel) {
+      case 'critical':
+        return <Badge className="bg-red-600 text-white">Critical</Badge>;
+      case 'high':
+        return <Badge className="bg-orange-600 text-white">High Risk</Badge>;
+      case 'medium':
+        return <Badge className="bg-yellow-600 text-white">Medium</Badge>;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -293,6 +333,110 @@ export default function TradeIntelligencePage() {
           </div>
         )}
 
+        {/* Trend Charts */}
+        {trends && (trends.volumeOverTime.length > 0 || trends.priceOverTime.length > 0) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Shipment Volume Trend */}
+            {trends.volumeOverTime.length > 0 && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-blue-600" />
+                  Shipment Volume Over Time
+                </h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={trends.volumeOverTime}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => {
+                        const [year, month] = value.split('-');
+                        return `${month}/${year.slice(2)}`;
+                      }}
+                    />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip
+                      formatter={(value: number, name: string) => {
+                        if (name === 'shipments') return [value, 'Shipments'];
+                        if (name === 'totalWeight') return [`${(value / 1000000).toFixed(1)}k tons`, 'Volume'];
+                        return [value, name];
+                      }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="shipments"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      name="Shipments"
+                      dot={{ fill: '#3b82f6' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Card>
+            )}
+
+            {/* Price Trend */}
+            {trends.priceOverTime.length > 0 && (
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <TrendingDown className="w-5 h-5 text-green-600" />
+                  Average Price Trend
+                </h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={trends.priceOverTime}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => {
+                        const [year, month] = value.split('-');
+                        return `${month}/${year.slice(2)}`;
+                      }}
+                    />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip
+                      formatter={(value: number) => [`RM ${value.toFixed(2)}/kg`, 'Avg Price']}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="avgPrice"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      name="Avg Price (RM/kg)"
+                      dot={{ fill: '#10b981' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Card>
+            )}
+
+            {/* Value by Country */}
+            {trends.valueByCountry.length > 0 && (
+              <Card className="p-6 lg:col-span-2">
+                <h3 className="text-lg font-semibold mb-4">Top Countries by Import Value</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={trends.valueByCountry}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="country" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip
+                      formatter={(value: number) => [`RM ${(value / 1000000).toFixed(2)}M`, 'Total Value']}
+                    />
+                    <Legend />
+                    <Bar
+                      dataKey="totalValue"
+                      fill="#8b5cf6"
+                      name="Total Value (RM)"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Card>
+            )}
+          </div>
+        )}
+
         {/* Top Companies & Countries */}
         {stats && (stats.topCompanies.length > 0 || stats.topCountries.length > 0) && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -371,12 +515,15 @@ export default function TradeIntelligencePage() {
                       <th className="text-left py-3 px-4 font-medium text-gray-700">Weight</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-700">Value</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-700">HS Code</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-700">Sector</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-700">Risk</th>
                     </tr>
                   </thead>
                   <tbody>
                     {shipments.map((shipment) => (
-                      <tr key={shipment.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <tr
+                        key={shipment.id}
+                        className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${getRiskColor(shipment.risk_level)}`}
+                      >
                         <td className="py-3 px-4">
                           <div className="text-sm">
                             <div className="font-medium">{shipment.shipment_date}</div>
@@ -423,7 +570,20 @@ export default function TradeIntelligencePage() {
                           <Badge variant="default">{shipment.hs_code}</Badge>
                         </td>
                         <td className="py-3 px-4">
-                          <Badge variant="default">{shipment.company_sector}</Badge>
+                          <div className="flex flex-col gap-1">
+                            {getRiskBadge(shipment.risk_level)}
+                            {shipment.anomaly_flag && (
+                              <div className="flex items-start gap-1 text-xs text-gray-600 mt-1">
+                                <AlertTriangle className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                                <span className="line-clamp-2">{shipment.anomaly_flag}</span>
+                              </div>
+                            )}
+                            {shipment.price_deviation !== undefined && shipment.price_deviation !== 0 && (
+                              <div className="text-xs text-gray-500">
+                                {shipment.price_deviation > 0 ? '+' : ''}{shipment.price_deviation.toFixed(1)}% vs avg
+                              </div>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
