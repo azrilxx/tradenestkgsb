@@ -10,7 +10,7 @@ import { generateText, streamText } from 'ai';
 
 // Configure OpenAI provider to use OpenRouter
 const openrouterClient = openai({
-  apiKey: process.env.OPENAI_API_KEY, // Uses OpenRouter key (sk-or-v1-...)
+  apiKey: process.env.OPENAI_API_KEY, // Uses OpenRouter key from environment variable
   baseURL: 'https://openrouter.ai/api/v1',
   defaultHeaders: {
     'HTTP-Referer': process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3005',

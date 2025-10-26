@@ -26,7 +26,7 @@ I've successfully switched your AI integration from Vercel AI Gateway to **OpenR
 Create a `.env.local` file in the project root:
 
 ```bash
-OPENAI_API_KEY=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
+OPENAI_API_KEY=YOUR_OPENROUTER_KEY_HERE
 NEXT_PUBLIC_BASE_URL=http://localhost:3005
 ```
 

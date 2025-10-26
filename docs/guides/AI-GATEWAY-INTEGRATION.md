@@ -8,11 +8,11 @@ TradeNest uses OpenRouter to access multiple AI models through a single API. Thi
 
 ### OpenRouter Setup
 
-Your OpenRouter API key (`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`) is configured in the code.
+Your OpenRouter API key should be configured securely in `.env.local` (never commit this file to git).
 
-**Update `.env.local` in project root:**
+**Create `.env.local` in project root with your OpenRouter key:**
 ```bash
-OPENAI_API_KEY=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
+OPENAI_API_KEY=YOUR_OPENROUTER_KEY_HERE
 NEXT_PUBLIC_BASE_URL=http://localhost:3005
 ```
 
@@ -131,7 +131,7 @@ TradeNest's detection capabilities to your boss."
 
 1. Create `.env.local` file in project root with:
    ```bash
-   OPENAI_API_KEY=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
+   OPENAI_API_KEY=YOUR_OPENROUTER_KEY_HERE
    NEXT_PUBLIC_BASE_URL=http://localhost:3005
    ```
 

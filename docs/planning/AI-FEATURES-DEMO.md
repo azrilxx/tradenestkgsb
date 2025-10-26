@@ -140,7 +140,7 @@ Streaming chat responses with access to your TradeNest database.
 
 1. **Create `.env.local` file** in the project root:
    ```bash
-   OPENAI_API_KEY=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
+   OPENAI_API_KEY=YOUR_OPENROUTER_KEY_HERE
    NEXT_PUBLIC_BASE_URL=http://localhost:3005
    ```
 
@@ -248,12 +248,12 @@ AI-FEATURES-DEMO.md                 - This file (demo guide)
 
 ## ⚠️ Note About Your API Key
 
-Your OpenRouter key (`sk-or-v1-...`) is now configured in the code.
+Your OpenRouter key should be configured securely in `.env.local` (never commit this file to git).
 
 **Setup Required:**
 Create `.env.local` in the project root:
 ```bash
-OPENAI_API_KEY=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
+OPENAI_API_KEY=YOUR_OPENROUTER_KEY_HERE
 NEXT_PUBLIC_BASE_URL=http://localhost:3005
 ```
 

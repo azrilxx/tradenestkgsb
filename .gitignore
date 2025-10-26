@@ -25,6 +25,10 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # vercel
 .vercel
@@ -35,4 +39,12 @@ next-env.d.ts
 
 # claude code settings (contains sensitive tokens)
 .claude/settings.local.json
-.vercel
+
+# IDE settings that might contain sensitive data
+.vscode/
+.idea/
+
+# Never commit API keys or secrets
+*.key
+*.pem
+secrets/
