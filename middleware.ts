@@ -51,11 +51,12 @@ export async function middleware(req: NextRequest) {
   } = await supabase.auth.getSession();
 
   // Protected routes - redirect to login if not authenticated
-  if (req.nextUrl.pathname.startsWith('/dashboard') && !session) {
-    const url = req.nextUrl.clone();
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
-  }
+  // DISABLED FOR DEV MODE - REMOVE IN PRODUCTION
+  // if (req.nextUrl.pathname.startsWith('/dashboard') && !session) {
+  //   const url = req.nextUrl.clone();
+  //   url.pathname = '/login';
+  //   return NextResponse.redirect(url);
+  // }
 
   // Redirect authenticated users away from auth pages
   if ((req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/signup') && session) {
