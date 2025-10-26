@@ -5,14 +5,14 @@
  * OpenRouter provides access to multiple AI models through a single API.
  */
 
-import { openai } from '@ai-sdk/openai';
+import { createOpenAI } from '@ai-sdk/openai';
 import { generateText, streamText } from 'ai';
 
 // Configure OpenAI provider to use OpenRouter
-const openrouterClient = openai({
-  apiKey: process.env.OPENAI_API_KEY, // Uses OpenRouter key from environment variable
+const openrouterClient = createOpenAI({
+  apiKey: process.env.OPENAI_API_KEY || '', // Uses OpenRouter key from environment variable
   baseURL: 'https://openrouter.ai/api/v1',
-  defaultHeaders: {
+  headers: {
     'HTTP-Referer': process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3005',
     'X-Title': 'TradeNest AI Assistant',
   },
