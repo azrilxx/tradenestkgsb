@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     console.error('Error testing rule:', error);
     return NextResponse.json({ 
       error: 'Rule testing failed', 
-      details: error.message 
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }
