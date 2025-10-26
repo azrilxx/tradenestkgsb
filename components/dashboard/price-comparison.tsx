@@ -103,8 +103,8 @@ export default function PriceComparison({
   };
 
   const getDeviationBadgeVariant = (deviation: number) => {
-    if (Math.abs(deviation) > 20) return 'destructive';
-    if (Math.abs(deviation) > 10) return 'secondary';
+    if (Math.abs(deviation) > 20) return 'critical';
+    if (Math.abs(deviation) > 10) return 'high';
     return 'default';
   };
 
