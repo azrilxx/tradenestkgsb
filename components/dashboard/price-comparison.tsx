@@ -112,7 +112,7 @@ export default function PriceComparison({
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Price Comparison</h3>
-        <Badge variant="outline" className="text-blue-600">
+        <Badge variant="default" className="text-blue-600">
           HS Code: {hsCode}
         </Badge>
       </div>
