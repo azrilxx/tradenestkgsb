@@ -52,7 +52,16 @@ export async function POST(request: Request) {
     const analysis = analyzeDeclarations(parsedDeclarations);
 
     // Check compliance
-    const benchmarkMap = benchmark_data ? new Map(Object.entries(benchmark_data)) : undefined;
+    // Convert benchmark_data to Map<string, number>
+    let benchmarkMap: Map<string, number> | undefined;
+    if (benchmark_data && typeof benchmark_data === 'object') {
+      const entries = Object.entries(benchmark_data).map(([key, value]) => [
+        key,
+        typeof value === 'number' ? value : parseFloat(String(value)) || 0,
+      ]);
+      benchmarkMap = new Map(entries);
+    }
+    
     const complianceResult = checkCompliance(parsedDeclarations, benchmarkMap);
 
     return NextResponse.json({
