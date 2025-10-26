@@ -131,7 +131,7 @@ export class RuleEvaluator {
       // Apply operator logic
       return this.applyOperator(data, operator, value);
     } catch (error) {
-      console.error(`Error evaluating condition ${field}:`, error);
+      console.error(`Error evaluating condition ${condition.field}:`, error);
       return false;
     }
   }
