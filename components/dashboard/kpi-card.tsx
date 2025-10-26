@@ -110,4 +110,3 @@ export function KPICard({ title, value, icon, trend, subtitle, color = 'blue', c
     </Card>
   );
 }
-}
