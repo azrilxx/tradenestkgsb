@@ -393,7 +393,7 @@ export default function TradeRemedyWorkbenchPage() {
                     </Card>
                   </div>
 
-                  {calculations.volume.impact !== null && (
+                  {calculations.volume.impact !== null && calculations.volume.impact !== undefined && (
                     <Card className="p-4 bg-orange-50 border border-orange-200">
                       <div className="text-sm text-gray-600 mb-2">Volume Impact</div>
                       <div className="text-2xl font-bold text-orange-600">
