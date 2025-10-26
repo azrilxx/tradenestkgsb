@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Send, Bot, User, Sparkles, TrendingUp, AlertCircle } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Send, Bot, User, Sparkles, Loader2 } from 'lucide-react';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -10,15 +10,11 @@ interface Message {
 }
 
 export default function AIAssistant() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: 'Hello! I\'m your TradeNest AI Assistant. I can help you analyze companies, explain alerts, and answer questions about trade-based money laundering patterns. How can I assist you today?',
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const quickQuestions = [
     'Analyze the FMM companies in our database',
@@ -27,7 +23,22 @@ export default function AIAssistant() {
     'Which Malaysian companies should we prioritize?',
   ];
 
-  const handleSendMessage = async (content: string) => {
+  const adjustTextareaHeight = () => {
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 200)}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [input]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isLoading) return;
 
     const userMessage: Message = {
@@ -38,6 +49,9 @@ export default function AIAssistant() {
 
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
+    if (inputRef.current) {
+      inputRef.current.style.height = '48px';
+    }
     setIsLoading(true);
 
     try {
@@ -92,159 +106,149 @@ export default function AIAssistant() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isLoading]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey && !isLoading && input.trim()) {
+        e.preventDefault();
+        handleSendMessage(input);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [input, isLoading, handleSendMessage]);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="flex flex-col h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
-            <Sparkles className="w-6 h-6 text-white" />
+      <div className="flex-shrink-0 border-b border-gray-200 bg-white">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg shadow-lg">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">TradeNest AI Assistant</h1>
+              <p className="text-xs text-gray-500">Powered by GPT-4 Turbo</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">AI Assistant</h1>
-            <p className="text-gray-600">
-              Powered by Vercel AI Gateway - Ask anything about TBML detection
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Action Cards */}
-      <div className="grid md:grid-cols-2 gap-4 mb-6">
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-5 h-5 text-blue-600" />
-            <h3 className="font-semibold text-blue-900">Company Analysis</h3>
-          </div>
-          <p className="text-sm text-blue-700">
-            Get AI-powered risk assessments for companies in your database
-          </p>
-        </div>
-
-        <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertCircle className="w-5 h-5 text-purple-600" />
-            <h3 className="font-semibold text-purple-900">Alert Explanations</h3>
-          </div>
-          <p className="text-sm text-purple-700">
-            Understand why alerts were triggered and what to investigate
-          </p>
         </div>
       </div>
 
       {/* Chat Messages */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm mb-4">
-        <div className="h-[500px] overflow-y-auto p-6 space-y-4">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex gap-3 ${
-                message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
-              }`}
-            >
-              <div
-                className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                  message.role === 'user'
-                    ? 'bg-blue-500'
-                    : 'bg-gradient-to-br from-blue-500 to-purple-600'
-                }`}
-              >
-                {message.role === 'user' ? (
-                  <User className="w-4 h-4 text-white" />
-                ) : (
-                  <Bot className="w-4 h-4 text-white" />
-                )}
-              </div>
-
-              <div
-                className={`flex-1 max-w-[80%] ${
-                  message.role === 'user' ? 'text-right' : 'text-left'
-                }`}
-              >
-                <div
-                  className={`inline-block p-4 rounded-lg ${
-                    message.role === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-900'
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap">{message.content}</p>
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          {messages.length === 0 ? (
+            /* Empty State */
+            <div className="flex flex-col items-center justify-center h-full min-h-[500px] text-center">
+              <div className="mb-6">
+                <div className="p-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full mx-auto w-20 h-20 flex items-center justify-center shadow-lg">
+                  <Sparkles className="w-10 h-10 text-white" />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {message.timestamp.toLocaleTimeString()}
-                </p>
+              </div>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">How can I assist you?</h2>
+              <p className="text-gray-600 mb-8 max-w-md">
+                I can help you analyze companies, explain alerts, and answer questions about trade-based money laundering patterns.
+              </p>
+
+              {/* Quick Questions */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl w-full">
+                {quickQuestions.map((question, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSendMessage(question)}
+                    disabled={isLoading}
+                    className="px-4 py-3 text-sm text-left bg-white border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all disabled:opacity-50 text-gray-700 hover:text-gray-900"
+                  >
+                    {question}
+                  </button>
+                ))}
               </div>
             </div>
-          ))}
+          ) : (
+            /* Messages */
+            <div className="space-y-6">
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex gap-4 ${message.role === 'assistant' ? 'justify-start' : 'justify-end'}`}
+                >
+                  {message.role === 'assistant' && (
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+                      <Bot className="w-5 h-5 text-white" />
+                    </div>
+                  )}
 
-          {isLoading && (
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <Bot className="w-4 h-4 text-white" />
-              </div>
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+                  <div className={`max-w-[85%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}>
+                    <div
+                      className={`p-4 rounded-2xl ${message.role === 'user'
+                          ? 'bg-blue-600 text-white rounded-ee-none'
+                          : 'bg-white border border-gray-200 text-gray-900 rounded-es-none shadow-sm'
+                        }`}
+                    >
+                      <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                    </div>
+                  </div>
+
+                  {message.role === 'user' && (
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center order-3">
+                      <User className="w-5 h-5 text-gray-700" />
+                    </div>
+                  )}
                 </div>
-              </div>
+              ))}
+
+              {isLoading && (
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+                    <Bot className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="bg-white border border-gray-200 rounded-2xl rounded-es-none p-4 shadow-sm">
+                    <div className="flex gap-2">
+                      <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
+                      <span className="text-gray-500 text-sm">Thinking...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
+      </div>
 
-        {/* Quick Questions */}
-        <div className="border-t border-gray-200 p-4 bg-gray-50">
-          <p className="text-sm text-gray-600 mb-2">Quick questions:</p>
-          <div className="flex flex-wrap gap-2">
-            {quickQuestions.map((question, index) => (
-              <button
-                key={index}
-                onClick={() => handleSendMessage(question)}
-                disabled={isLoading}
-                className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-full hover:bg-gray-50 hover:border-blue-400 transition-colors disabled:opacity-50"
-              >
-                {question}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Input */}
-        <div className="border-t border-gray-200 p-4">
-          <div className="flex gap-2">
-            <input
-              type="text"
+      {/* Input Area */}
+      <div className="flex-shrink-0 border-t border-gray-200 bg-white">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="relative">
+            <textarea
+              ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(input)}
-              placeholder="Ask about companies, alerts, or TBML patterns..."
+              onChange={(e) => {
+                setInput(e.target.value);
+                adjustTextareaHeight();
+              }}
+              onInput={adjustTextareaHeight}
+              placeholder="Message TradeNest AI Assistant..."
               disabled={isLoading}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+              rows={1}
+              className="w-full px-4 py-3 pr-12 bg-white border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-50 text-gray-900 placeholder-gray-400"
+              style={{ minHeight: '48px', maxHeight: '200px' }}
             />
             <button
               onClick={() => handleSendMessage(input)}
               disabled={isLoading || !input.trim()}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="absolute right-2 bottom-2 p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Send className="w-4 h-4" />
-              Send
+              <Send className="w-5 h-5" />
             </button>
           </div>
+          <p className="text-xs text-gray-500 mt-2 ml-2">
+            Press Enter to send, Shift+Enter for new line
+          </p>
         </div>
-      </div>
-
-      {/* Info Footer */}
-      <div className="text-center text-sm text-gray-500">
-        <p>
-          Powered by <strong>Vercel AI Gateway</strong> with GPT-4 Turbo
-        </p>
-        <p className="mt-1">
-          All responses are generated by AI and should be verified by compliance
-          professionals
-        </p>
       </div>
     </div>
   );
