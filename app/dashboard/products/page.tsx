@@ -62,29 +62,32 @@ export default function ProductsPage() {
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
-          <Card
+          <div
             key={product.id}
-            className={`hover:shadow-lg transition-shadow cursor-pointer ${selectedProduct?.id === product.id ? 'ring-2 ring-blue-500' : ''
-              }`}
+            className={`hover:shadow-lg transition-shadow cursor-pointer ${
+              selectedProduct?.id === product.id ? 'ring-2 ring-blue-500' : ''
+            }`}
             onClick={() => setSelectedProduct(product)}
           >
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-3">
-                <div className="font-mono text-lg font-bold text-blue-600">
-                  {product.hs_code}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="font-mono text-lg font-bold text-blue-600">
+                    {product.hs_code}
+                  </div>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${categoryColors[product.category] || 'bg-gray-100 text-gray-800'}`}>
+                    {product.category}
+                  </span>
                 </div>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${categoryColors[product.category] || 'bg-gray-100 text-gray-800'}`}>
-                  {product.category}
-                </span>
-              </div>
-              <p className="text-gray-700 text-sm">
-                {product.description}
-              </p>
-              <div className="mt-3 text-xs text-gray-500">
-                Click to compare prices
-              </div>
-            </CardContent>
-          </Card>
+                <p className="text-gray-700 text-sm">
+                  {product.description}
+                </p>
+                <div className="mt-3 text-xs text-gray-500">
+                  Click to compare prices
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         ))}
       </div>
 
