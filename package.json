@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "seed-db": "powershell -Command \"$body = '{\\\"action\\\": \\\"seed\\\"}'; Invoke-WebRequest -Uri 'http://localhost:3002/api/seed' -Method POST -Body $body -ContentType 'application/json'\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
