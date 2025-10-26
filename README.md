@@ -189,14 +189,17 @@ Query example in SQL Editor:
 SELECT * FROM v_alerts_with_details LIMIT 10;
 ```
 
-## 🚢 Deployment (Future)
+## 🚢 Deployment
+
+The application is deployed on Netlify.
 
 ```bash
 # Build for production
 npm run build
 
-# Deploy to Vercel (recommended)
-vercel deploy
+# Deploy via Netlify (configured with netlify.toml)
+# Push to GitHub master branch to trigger automatic deployment
+git push origin master
 ```
 
 ## 📞 Support

@@ -1,7 +1,7 @@
 # Deployment Checklist - Post Git Push
 
 **Date**: January 2025
-**Status**: ✅ Git push complete | ⏳ Supabase migrations pending | ✅ Vercel auto-deploy
+**Status**: ✅ Git push complete | ⏳ Supabase migrations pending | ✅ Netlify auto-deploy
 
 ---
 
@@ -10,15 +10,14 @@
 ### 1. Git Push (Complete)
 - ✅ All code changes committed
 - ✅ Pushed to GitHub (`master` branch)
-- ✅ 99 files changed, 14,075 insertions
-- **Commit**: `b4c8759` - "docs: Update TASK_BREAKDOWN.md to mark Phase 8 and Phase 6.3 as complete"
+- **Action**: Automatic deployment triggered by GitHub push
 
-### 2. Vercel Deployment (Auto-Deploy)
-- ✅ Repository is connected to Vercel
+### 2. Netlify Deployment (Auto-Deploy)
+- ✅ Repository is connected to Netlify
 - ✅ Automatic deployment triggered by GitHub push
-- **Action Required**: Monitor deployment at [Vercel Dashboard](https://vercel.com/dashboard)
+- **Action Required**: Monitor deployment at [Netlify Dashboard](https://app.netlify.com/)
 - **Expected Time**: 2-5 minutes for build + deploy
-- **Verify**: Check https://tradenest.vercel.app (or your custom domain)
+- **Configuration**: `netlify.toml` in project root
 
 ---
 
@@ -29,7 +28,7 @@
 Three new database migration files need to be applied to your Supabase database:
 
 1. **Migration 004**: Gazette Tracker Schema
-2. **Migration 005**: Trade Remedy Workbench Schema  
+2. **Migration 005**: Trade Remedy Workbench Schema
 3. **Migration 006**: FMM Association Portal Schema
 
 ### How to Apply Migrations (Choose One Method)
@@ -68,9 +67,9 @@ After running migrations, verify in Supabase SQL Editor:
 
 ```sql
 -- Check new tables exist
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
   AND table_name IN ('gazettes', 'trade_remedy_cases', 'associations', 'association_members');
 
 -- Should return 4 rows (or more if other new tables exist)
@@ -102,20 +101,21 @@ WHERE table_schema = 'public'
 
 ## 🔍 Verify Complete Deployment
 
-### 1. Check Vercel Deployment
+### 1. Check Netlify Deployment
 ```bash
-# Should show deployment status
-https://vercel.com/dashboard
+# View deployment status
+https://app.netlify.com/
 ```
 
-**Verification URLs:**
-- Production: https://tradenest.vercel.app
+**Verification:**
 - Check build logs for any errors
+- Verify site is live
+- Test all routes are accessible
 
 ### 2. Check Supabase Database
 ```sql
 -- Run in Supabase SQL Editor
-SELECT 
+SELECT
   schemaname,
   tablename,
   tableowner
@@ -130,11 +130,11 @@ ORDER BY tablename;
 
 Once migrations are applied, test these new features:
 
-- **Gazette Tracker**: http://localhost:3000/dashboard/gazette-tracker
-- **Trade Remedy Workbench**: http://localhost:3000/dashboard/trade-remedy
-- **FMM Associations**: http://localhost:3000/associations
-- **Customs Checker**: http://localhost:3000/dashboard/customs-checker
-- **Intelligence Dashboard**: http://localhost:3000/dashboard/intelligence
+- **Gazette Tracker**: /dashboard/gazette-tracker
+- **Trade Remedy Workbench**: /dashboard/trade-remedy
+- **FMM Associations**: /associations
+- **Customs Checker**: /dashboard/customs-checker
+- **Intelligence Dashboard**: /dashboard/intelligence
 
 ---
 
@@ -142,7 +142,7 @@ Once migrations are applied, test these new features:
 
 ### Immediate (Required)
 1. ✅ Apply Supabase migrations (004, 005, 006)
-2. ✅ Monitor Vercel deployment status
+2. ✅ Monitor Netlify deployment status
 3. ✅ Verify all new tables exist in database
 
 ### Testing (Recommended)
@@ -151,7 +151,7 @@ Once migrations are applied, test these new features:
 6. Check PDF generation with trade remedy features
 
 ### Production Readiness (Optional)
-7. Update environment variables in Vercel
+7. Update environment variables in Netlify project settings
 8. Test production build locally: `npm run build`
 9. Run seed script if needed for demo data
 
@@ -164,10 +164,10 @@ Once migrations are applied, test these new features:
 - All migrations use `CREATE TABLE IF NOT EXISTS` - safe to run multiple times
 - Row Level Security (RLS) policies are included
 
-### Vercel Deployment
-- Build should complete successfully
-- Check for any environment variable warnings
-- Verify all API routes are accessible
+### Netlify Deployment
+- Build configuration is in `netlify.toml`
+- Environment variables must be set in Netlify dashboard
+- Next.js plugin automatically handles builds
 
 ### Breaking Changes
 - No breaking changes in this update
@@ -184,27 +184,27 @@ Error: relation "XXX" already exists
 ```
 **Solution**: This is normal. `IF NOT EXISTS` prevents duplicate creation.
 
-### Vercel Build Failures
+### Netlify Build Failures
 ```
 Build failed: Type error in app/page.tsx
 ```
-**Solution**: Check build logs in Vercel dashboard for specific errors.
+**Solution**: Check build logs in Netlify dashboard for specific errors.
 
 ### Missing Environment Variables
 ```
 Error: NEXT_PUBLIC_SUPABASE_URL is undefined
 ```
-**Solution**: Add environment variables in Vercel project settings.
+**Solution**: Add environment variables in Netlify project settings:
+- Site settings → Environment variables → Add variables
 
 ---
 
 ## ✅ Summary
 
 - **Git Push**: Complete ✅
-- **Vercel Deployment**: Auto-deploying ✅
+- **Netlify Deployment**: Auto-deploying ✅
 - **Supabase Migrations**: Requires manual application ⏳
 - **Expected Time**: 5-10 minutes for migrations
 - **Risk Level**: Low (additive changes only)
 
 **All systems ready for production after Supabase migrations are applied.**
-

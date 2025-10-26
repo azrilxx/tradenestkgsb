@@ -61,7 +61,7 @@ export async function POST(request: Request) {
       ] as [string, number]);
       benchmarkMap = new Map(entries);
     }
-    
+
     const complianceResult = checkCompliance(parsedDeclarations, benchmarkMap);
 
     return NextResponse.json({
