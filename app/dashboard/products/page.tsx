@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import PriceComparison from '@/components/dashboard/price-comparison';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -60,7 +62,12 @@ export default function ProductsPage() {
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
-          <Card key={product.id} className="hover:shadow-lg transition-shadow">
+          <Card
+            key={product.id}
+            className={`hover:shadow-lg transition-shadow cursor-pointer ${selectedProduct?.id === product.id ? 'ring-2 ring-blue-500' : ''
+              }`}
+            onClick={() => setSelectedProduct(product)}
+          >
             <CardContent className="p-6">
               <div className="flex justify-between items-start mb-3">
                 <div className="font-mono text-lg font-bold text-blue-600">
@@ -73,10 +80,27 @@ export default function ProductsPage() {
               <p className="text-gray-700 text-sm">
                 {product.description}
               </p>
+              <div className="mt-3 text-xs text-gray-500">
+                Click to compare prices
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {/* Price Comparison */}
+      {selectedProduct && (
+        <div className="mt-8">
+          <PriceComparison
+            hsCode={selectedProduct.hs_code}
+            country="Malaysia"
+            dateRange={{
+              start: new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+              end: new Date().toISOString().split('T')[0]
+            }}
+          />
+        </div>
+      )}
 
       {products.length === 0 && (
         <Card>

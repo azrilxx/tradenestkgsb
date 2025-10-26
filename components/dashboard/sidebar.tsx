@@ -8,6 +8,7 @@ const navigation = [
   { name: 'Alerts', href: '/dashboard/alerts', icon: '🔔' },
   { name: 'Products', href: '/dashboard/products', icon: '📦' },
   { name: 'Analytics', href: '/dashboard/analytics', icon: '📈' },
+  { name: 'Benchmarks', href: '/dashboard/benchmarks', icon: '📊' },
   { name: 'Trade Intelligence', href: '/dashboard/trade-intelligence', icon: '🔍' },
   { name: 'Detection', href: '/detect', icon: '⚡' },
   { name: 'Settings', href: '/dashboard/settings', icon: '⚙️' },
@@ -33,8 +34,8 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-colors ${isActive
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                 }`}
             >
               <span className="text-xl">{item.icon}</span>
