@@ -252,21 +252,21 @@ export default function RulesPage() {
       <Card className="p-4">
         <div className="flex space-x-4">
           <Button
-            variant={activeFilter === 'all' ? 'default' : 'outline'}
+            variant={activeFilter === 'all' ? 'primary' : 'outline'}
             onClick={() => setActiveFilter('all')}
             size="sm"
           >
             All Rules ({rules.length})
           </Button>
           <Button
-            variant={activeFilter === 'active' ? 'default' : 'outline'}
+            variant={activeFilter === 'active' ? 'primary' : 'outline'}
             onClick={() => setActiveFilter('active')}
             size="sm"
           >
             Active ({rules.filter(r => r.active).length})
           </Button>
           <Button
-            variant={activeFilter === 'inactive' ? 'default' : 'outline'}
+            variant={activeFilter === 'inactive' ? 'primary' : 'outline'}
             onClick={() => setActiveFilter('inactive')}
             size="sm"
           >
