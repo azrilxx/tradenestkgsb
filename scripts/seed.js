@@ -1,5 +1,5 @@
 // Simple seed test script
-import { seedDatabase } from './lib/mock-data/seed.js';
+import { seedDatabase } from '../lib/mock-data/seed.ts';
 
 async function main() {
   console.log('🌱 Starting database seeding...');
