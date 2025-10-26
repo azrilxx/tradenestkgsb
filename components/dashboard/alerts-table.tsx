@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AnomalySeverity, AlertStatus, AnomalyType } from '@/types/database';
+import { DollarSign, BarChart3, Ship, TrendingUp } from 'lucide-react';
 
 interface Alert {
   id: string;
@@ -36,10 +37,10 @@ export function AlertsTable({ alerts, onStatusChange, onViewDetails, onDownloadP
 
   const getTypeLabel = (type: AnomalyType) => {
     const labels = {
-      price_spike: '💰 Price Spike',
-      tariff_change: '📊 Tariff Change',
-      freight_surge: '🚢 Freight Surge',
-      fx_volatility: '💱 FX Volatility',
+      price_spike: { icon: DollarSign, text: 'Price Spike' },
+      tariff_change: { icon: BarChart3, text: 'Tariff Change' },
+      freight_surge: { icon: Ship, text: 'Freight Surge' },
+      fx_volatility: { icon: TrendingUp, text: 'FX Volatility' },
     };
     return labels[type];
   };
@@ -166,9 +167,20 @@ export function AlertsTable({ alerts, onStatusChange, onViewDetails, onDownloadP
                 return (
                   <tr key={alert.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-medium text-gray-900">
-                        {getTypeLabel(anomaly.type)}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const typeInfo = getTypeLabel(anomaly.type);
+                          const IconComponent = typeInfo.icon;
+                          return (
+                            <>
+                              <IconComponent className="w-4 h-4 text-gray-500" />
+                              <span className="text-sm font-medium text-gray-900">
+                                {typeInfo.text}
+                              </span>
+                            </>
+                          );
+                        })()}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       {anomaly.products ? (

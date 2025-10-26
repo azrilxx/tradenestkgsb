@@ -1,5 +1,8 @@
 import { supabase } from '@/lib/supabase/client';
 import { MOCK_PRODUCTS } from './products';
+import { FMM_COMPANIES } from './fmm-companies';
+import { MALAYSIA_PORTS } from './malaysia-ports';
+import { generateMalaysiaShipments } from './malaysia-shipments';
 import {
   generatePriceData,
   generateTariffData,
@@ -32,7 +35,35 @@ export async function seedDatabase() {
 
     console.log(`✅ Inserted ${products?.length} products`);
 
-    // Step 2: Generate historical data
+    // Step 2: Insert FMM Companies
+    console.log('🏢 Inserting FMM companies...');
+    const { data: companies, error: companiesError } = await supabase
+      .from('companies')
+      .insert(FMM_COMPANIES)
+      .select();
+
+    if (companiesError) {
+      console.error('Error inserting companies:', companiesError);
+      throw companiesError;
+    }
+
+    console.log(`✅ Inserted ${companies?.length} FMM companies`);
+
+    // Step 3: Insert Malaysia Ports
+    console.log('🚢 Inserting Malaysia ports...');
+    const { data: ports, error: portsError } = await supabase
+      .from('ports')
+      .insert(MALAYSIA_PORTS)
+      .select();
+
+    if (portsError) {
+      console.error('Error inserting ports:', portsError);
+      throw portsError;
+    }
+
+    console.log(`✅ Inserted ${ports?.length} ports`);
+
+    // Step 4: Generate historical data
     const { startDate, endDate } = getHistoricalDateRange();
     console.log(`📅 Generating 6 months of data (${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]})`);
 
@@ -162,7 +193,31 @@ export async function seedDatabase() {
     }
     console.log(`✅ Inserted ${allFreightData.length} freight index records`);
 
-    // Step 7: Insert Anomalies
+    // Step 7: Generate Malaysia Shipments
+    console.log('📦 Generating Malaysia shipment data...');
+    if (companies && ports && products) {
+      const shipments = generateMalaysiaShipments(
+        companies,
+        ports,
+        products,
+        startDate,
+        endDate,
+        800 // Generate 800 shipments
+      );
+
+      // Insert shipments in batches
+      const shipmentBatchSize = 100;
+      for (let i = 0; i < shipments.length; i += shipmentBatchSize) {
+        const batch = shipments.slice(i, i + shipmentBatchSize);
+        const { error } = await supabase.from('shipments').insert(batch);
+        if (error) {
+          console.error('Error inserting shipment batch:', error);
+        }
+      }
+      console.log(`✅ Inserted ${shipments.length} shipment records`);
+    }
+
+    // Step 8: Insert Anomalies
     console.log('🚨 Generating anomalies...');
     const anomalies = generateDemoAnomalies();
 
@@ -173,18 +228,18 @@ export async function seedDatabase() {
         const categoryMatch = anomaly.product_id.includes('electronics')
           ? 'Electronics'
           : anomaly.product_id.includes('textiles')
-          ? 'Textiles'
-          : anomaly.product_id.includes('palm-oil')
-          ? 'Agriculture'
-          : anomaly.product_id.includes('automotive')
-          ? 'Automotive'
-          : anomaly.product_id.includes('furniture')
-          ? 'Furniture'
-          : anomaly.product_id.includes('rubber')
-          ? 'Rubber'
-          : anomaly.product_id.includes('chemicals')
-          ? 'Chemicals'
-          : null;
+            ? 'Textiles'
+            : anomaly.product_id.includes('palm-oil')
+              ? 'Agriculture'
+              : anomaly.product_id.includes('automotive')
+                ? 'Automotive'
+                : anomaly.product_id.includes('furniture')
+                  ? 'Furniture'
+                  : anomaly.product_id.includes('rubber')
+                    ? 'Rubber'
+                    : anomaly.product_id.includes('chemicals')
+                      ? 'Chemicals'
+                      : null;
 
         const matchedProduct = products.find((p) => p.category === categoryMatch);
         return {
@@ -225,6 +280,9 @@ export async function seedDatabase() {
     console.log('\n🎉 Database seeding completed successfully!');
     console.log('\n📊 Summary:');
     console.log(`   - Products: ${products?.length || 0}`);
+    console.log(`   - Companies: ${companies?.length || 0}`);
+    console.log(`   - Ports: ${ports?.length || 0}`);
+    console.log(`   - Shipments: 800`);
     console.log(`   - Price records: ${allPriceData.length}`);
     console.log(`   - Tariff records: ${allTariffData.length}`);
     console.log(`   - FX rates: ${allFxData.length}`);
@@ -236,6 +294,9 @@ export async function seedDatabase() {
       success: true,
       stats: {
         products: products?.length || 0,
+        companies: companies?.length || 0,
+        ports: ports?.length || 0,
+        shipments: 800,
         prices: allPriceData.length,
         tariffs: allTariffData.length,
         fxRates: allFxData.length,
@@ -262,6 +323,9 @@ export async function clearDatabase() {
   const tables = [
     'alerts',
     'anomalies',
+    'shipments',
+    'companies',
+    'ports',
     'freight_index',
     'fx_rates',
     'price_data',

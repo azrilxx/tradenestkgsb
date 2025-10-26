@@ -1,52 +1,47 @@
-'use client';
-
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import React from 'react';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
 
 interface SeverityChartProps {
-  data: {
-    critical: number;
-    high: number;
-    medium: number;
-    low: number;
-  };
+  data: Array<{
+    severity: string;
+    count: number;
+    color: string;
+  }>;
 }
 
 export function SeverityChart({ data }: SeverityChartProps) {
-  const chartData = [
-    { name: 'Critical', value: data.critical, color: '#DC2626' },
-    { name: 'High', value: data.high, color: '#EA580C' },
-    { name: 'Medium', value: data.medium, color: '#CA8A04' },
-    { name: 'Low', value: data.low, color: '#2563EB' },
-  ].filter(item => item.value > 0);
-
-  if (chartData.length === 0) {
+  if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400">
-        No data available
+      <div className="flex items-center justify-center h-48 text-gray-400">
+        No severity data available
       </div>
     );
   }
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <PieChart>
-        <Pie
-          data={chartData}
-          cx="50%"
-          cy="50%"
-          labelLine={false}
-          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-          outerRadius={80}
-          fill="#8884d8"
-          dataKey="value"
+    <div className="h-48">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          layout="horizontal"
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
-          {chartData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.color} />
-          ))}
-        </Pie>
-        <Tooltip />
-        <Legend />
-      </PieChart>
-    </ResponsiveContainer>
+          <XAxis type="number" hide />
+          <YAxis
+            type="category"
+            dataKey="severity"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fontSize: 12, fill: '#6B7280' }}
+            width={60}
+          />
+          <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
