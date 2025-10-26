@@ -1,8 +1,8 @@
 # TradeNest AI Features - Ready for Demo
 
-## What I Built with Your Vercel AI Gateway Key
+## What I Built with OpenRouter
 
-I've created a complete AI-powered intelligence layer for TradeNest using Vercel AI SDK. Here's everything that's ready:
+I've created a complete AI-powered intelligence layer for TradeNest using OpenRouter. Here's everything that's ready:
 
 ---
 
@@ -136,44 +136,32 @@ Streaming chat responses with access to your TradeNest database.
 
 ## 🚀 How to Use (For Your Boss Demo)
 
-### Option 1: Live Demo (Recommended)
+### Live Demo Steps:
 
-1. **Get an OpenAI API Key** (if you don't have one):
-   - Visit https://platform.openai.com/api-keys
-   - Create account (free trial gives $5 credit)
-   - Generate API key (starts with `sk-`)
-
-2. **Update `.env.local`:**
+1. **Create `.env.local` file** in the project root:
    ```bash
-   OPENAI_API_KEY=sk-your-actual-openai-key-here
+   OPENAI_API_KEY=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
+   NEXT_PUBLIC_BASE_URL=http://localhost:3005
    ```
 
-3. **Start the server:**
+2. **Start the server:**
    ```bash
    npm run dev
    ```
 
-4. **Show your boss:**
+3. **Show your boss:**
    - Navigate to http://localhost:3005/ai-assistant
    - Ask: "Analyze the 10 FMM companies we scraped"
    - Show real-time AI analysis of your actual data
    - Demonstrate alert explanations
    - Show company risk scoring
 
-### Option 2: Screenshots & Code Walkthrough
-
-If you can't get an API key in time, show:
-- The beautiful UI ([app/ai-assistant/page.tsx](app/ai-assistant/page.tsx))
-- The API routes ([app/api/ai/](app/api/ai/))
-- This documentation
-- Explain: "This is ready to go live once we have our Vercel AI Gateway configured"
-
 ---
 
 ## 💡 Demo Script for Your Boss
 
 **Opening:**
-"I've integrated AI-powered intelligence into TradeNest using Vercel's AI Gateway. Let me show you what it can do..."
+"I've integrated AI-powered intelligence into TradeNest using OpenRouter's multi-model API. Let me show you what it can do..."
 
 **Demo 1: AI Chat**
 1. Open http://localhost:3005/ai-assistant
@@ -194,7 +182,7 @@ If you can't get an API key in time, show:
 4. Explain: "Automated risk scoring saves hours of manual analysis"
 
 **Closing:**
-"This AI layer makes TradeNest intelligent - it can explain its findings, help analysts make decisions, and even provide strategic recommendations. It's powered by Vercel AI Gateway which gives us caching, rate limiting, and cost optimization automatically."
+"This AI layer makes TradeNest intelligent - it can explain its findings, help analysts make decisions, and even provide strategic recommendations. It's powered by OpenRouter which provides access to multiple AI models through a single API."
 
 ---
 
@@ -224,17 +212,17 @@ If you can't get an API key in time, show:
 
 ### Architecture:
 ```
-User → AI Assistant UI → API Routes → Vercel AI SDK → OpenAI GPT-4
+User → AI Assistant UI → API Routes → OpenRouter API → GPT-4 Turbo
                                     ↓
                               Supabase Database
                               (Your FMM Companies)
 ```
 
-### Cost Optimization (via Vercel AI Gateway):
-- **Response Caching**: Repeated questions cost $0
-- **Rate Limiting**: Prevents quota exhaustion
-- **Load Balancing**: Automatic failover
-- **Analytics Dashboard**: Track usage per feature
+### Cost Optimization (via OpenRouter):
+- **Flexible Pricing**: Choose from affordable models
+- **Transparent Costs**: Clear pricing per model
+- **High Availability**: Multiple model options
+- **Easy Setup**: Single API key for all models
 
 ### Models Used:
 - **GPT-4 Turbo**: For complex analysis (company risk, alert explanation)
@@ -260,12 +248,16 @@ AI-FEATURES-DEMO.md                 - This file (demo guide)
 
 ## ⚠️ Note About Your API Key
 
-The key you provided (`vck_1coU...`) is a **Vercel AI Gateway token**, not a direct OpenAI key.
+Your OpenRouter key (`sk-or-v1-...`) is now configured in the code.
 
-**For local testing:** You need an OpenAI key (starts with `sk-`)
-**For production:** Deploy to Vercel and the gateway will work automatically
+**Setup Required:**
+Create `.env.local` in the project root:
+```bash
+OPENAI_API_KEY=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
+NEXT_PUBLIC_BASE_URL=http://localhost:3005
+```
 
-I've built everything ready - we just need the right key type for testing!
+Then restart your dev server: `npm run dev`
 
 ---
 
@@ -280,8 +272,8 @@ I've built everything ready - we just need the right key type for testing!
 - ✅ Documentation
 
 **What's Needed:**
-- ⏳ OpenAI API key (for testing)
-- OR deploy to Vercel (gateway works automatically)
+- ✅ OpenRouter API key configured
+- Just create `.env.local` file to start using
 
 **Time to Build:** ~2 hours
 **Time to Demo:** 5 minutes
@@ -291,6 +283,6 @@ I've built everything ready - we just need the right key type for testing!
 
 ## Questions?
 
-The AI features are **production-ready**. As soon as you provide an OpenAI API key or deploy to Vercel, you can start asking questions about your FMM companies, analyzing TBML patterns, and impressing your boss with AI-powered compliance intelligence!
+The AI features are **production-ready**. Just create the `.env.local` file with your OpenRouter key, and you can start asking questions about your FMM companies, analyzing TBML patterns, and impressing your boss with AI-powered compliance intelligence!
 
 Want me to add "Explain with AI" buttons to the Alerts page? Or implement bulk company analysis for all 70 companies in your database?

@@ -1,36 +1,27 @@
-# Vercel AI Gateway Integration for TradeNest
+# OpenRouter AI Integration for TradeNest
 
 ## Overview
 
-Your Vercel AI Gateway API key (`vck_1coUG0soPCBLEyTbHBHSk9G0WzA68mTCMMCIF1DAOz746KphGD2bpZ6S`) enables AI-powered features in TradeNest.
+TradeNest uses OpenRouter to access multiple AI models through a single API. This provides flexibility, cost optimization, and high availability.
 
-## Important Note About the API Key
+## API Configuration
 
-The key you provided starts with `vck_` which indicates it's a **Vercel AI Gateway key**. This type of key is used specifically for Vercel's AI infrastructure and requires special configuration.
+### OpenRouter Setup
 
-### Two Options:
+Your OpenRouter API key (`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`) is configured in the code.
 
-### Option 1: Use a Real OpenAI API Key (Recommended for Testing)
-
-To test the AI features immediately, you need an OpenAI API key from https://platform.openai.com/api-keys
-
-The key should start with `sk-` (not `vck_`).
-
-**Update `.env.local`:**
+**Update `.env.local` in project root:**
 ```bash
-# Replace with your OpenAI key
-OPENAI_API_KEY=sk-your-openai-key-here
+OPENAI_API_KEY=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
+NEXT_PUBLIC_BASE_URL=http://localhost:3005
 ```
 
-### Option 2: Configure Vercel AI Gateway Properly
+### How It Works
 
-If you want to use Vercel AI Gateway (for production), you need to:
-
-1. Verify your Vercel AI Gateway configuration at: https://vercel.com/dashboard/ai
-2. Get the correct gateway endpoint URL
-3. Configure the baseURL in the OpenAI client
-
-**The current issue:** The `vck_` key format suggests this is a Vercel token, but we need the actual OpenAI API key that Vercel AI Gateway wraps.
+The OpenAI SDK provider is configured to use OpenRouter's API endpoint:
+- **Base URL**: `https://openrouter.ai/api/v1`
+- **Model Format**: `openai/gpt-4-turbo` (or any supported model)
+- **Headers**: Automatic tracking with HTTP-Referer and X-Title
 
 ## What We Built
 
@@ -136,23 +127,25 @@ TradeNest's detection capabilities to your boss."
 
 ## Next Steps to Make It Work
 
-### Quick Fix (for immediate testing):
+### Quick Start:
 
-1. Get an OpenAI API key from https://platform.openai.com/api-keys
-2. Update `.env.local`:
+1. Create `.env.local` file in project root with:
    ```bash
-   OPENAI_API_KEY=sk-your-actual-openai-key
+   OPENAI_API_KEY=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
+   NEXT_PUBLIC_BASE_URL=http://localhost:3005
    ```
-3. Restart dev server: `npm run dev`
-4. Run test script: `node scripts/test-ai.mjs`
-5. Visit http://localhost:3005/ai-assistant
 
-### For Production (using Vercel AI Gateway):
+2. Restart dev server: `npm run dev`
 
-1. Go to Vercel Dashboard → Your Project → AI
-2. Find your AI Gateway configuration
-3. Get the actual OpenAI API key (not the Vercel token)
-4. Update configuration with proper endpoint
+3. Visit http://localhost:3005/ai-assistant
+
+4. Test AI features by asking questions about your TradeNest data
+
+### Production Deployment:
+
+The OpenRouter integration is production-ready. Just ensure:
+- `.env.local` is configured (or use environment variables in Vercel/deployment platform)
+- `NEXT_PUBLIC_BASE_URL` is set to your production URL
 
 ## Benefits Once Working
 
@@ -165,10 +158,10 @@ TradeNest's detection capabilities to your boss."
 
 ### Technical Benefits:
 
-- **Cost Optimization**: Vercel AI Gateway caches repeated queries
-- **Rate Limiting**: Prevents API quota exhaustion
-- **Load Balancing**: Automatic failover between providers
-- **Analytics**: Track AI usage per feature
+- **Cost Optimization**: Flexible pricing, choose affordable models
+- **High Availability**: Access to multiple AI models
+- **Easy Integration**: Single API key for all models
+- **Flexibility**: Switch models without code changes
 
 ## Files Created
 
@@ -187,10 +180,11 @@ scripts/test-ai.mjs                 - Test script
 ✅ 3 API endpoints created
 ✅ Beautiful chat UI with streaming
 ✅ Navigation added to sidebar
+✅ OpenRouter integration configured
 ✅ Test script ready
 
-⏳ Waiting for valid OpenAI API key to test functionality
+⏳ Create `.env.local` file to start using
 
 ## Questions?
 
-The AI features are **ready to demo** once you provide an OpenAI API key. The entire infrastructure is built and waiting!
+The AI features are **ready to demo** once you create the `.env.local` file with your OpenRouter key. The entire infrastructure is built and configured!

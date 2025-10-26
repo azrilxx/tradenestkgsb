@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
   Sparkles,
@@ -17,8 +17,12 @@ import {
   Zap,
   ChevronRight,
   User,
-  Power
+  Power,
+  LogOut,
+  Users2,
+  FileCheck
 } from 'lucide-react';
+import { getCurrentUser, signOut } from '@/lib/supabase/auth-helpers';
 
 const navigation = [
   {
@@ -33,7 +37,10 @@ const navigation = [
     items: [
       { name: 'Alerts', href: '/dashboard/alerts', icon: Bell, shortcut: 'L', badge: '12', badgeColor: 'red' },
       { name: 'Analytics', href: '/dashboard/analytics', icon: TrendingUp, shortcut: 'N' },
+      { name: 'Interconnected', href: '/dashboard/intelligence', icon: Search, shortcut: 'I', badge: 'NEW' },
       { name: 'Trade Intelligence', href: '/dashboard/trade-intelligence', icon: Search, shortcut: 'T' },
+      { name: 'Scenarios', href: '/dashboard/scenarios', icon: TrendingUp, shortcut: 'S' },
+      { name: 'Correlation', href: '/dashboard/correlation', icon: BarChart3, shortcut: 'R', badge: 'NEW' },
     ]
   },
   {
@@ -48,17 +55,41 @@ const navigation = [
     group: 'Tools',
     items: [
       { name: 'Trade Remedy', href: '/dashboard/trade-remedy', icon: Scale, shortcut: 'R' },
+      { name: 'Reports', href: '/dashboard/reports', icon: FileText, shortcut: 'E' },
       { name: 'Rules', href: '/dashboard/rules', icon: Settings, shortcut: 'U' },
       { name: 'Detection', href: '/detect', icon: Zap, shortcut: 'E' },
+      { name: 'Associations', href: '/associations', icon: Users2, shortcut: 'F' },
+      { name: 'FMM Dashboard', href: '/associations/fmm', icon: Users2, shortcut: 'M' },
+      { name: 'Customs Checker', href: '/dashboard/customs-checker', icon: FileCheck, shortcut: 'C', badge: 'NEW' },
     ]
   },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string>('Analyst');
+  const [userName, setUserName] = useState<string>('User');
+
+  useEffect(() => {
+    // Fetch user info
+    const loadUser = async () => {
+      const user = await getCurrentUser();
+      if (user) {
+        setUserEmail(user.email || 'analyst@tradenest.io');
+        setUserName(user.full_name || 'Analyst');
+      }
+    };
+    loadUser();
+  }, []);
+
+  const handleLogout = async () => {
+    await signOut();
+    router.push('/login');
+  };
 
   const toggleGroup = (groupName: string) => {
     const newCollapsed = new Set(collapsedGroups);
@@ -170,10 +201,10 @@ export function Sidebar() {
                       {/* Badge */}
                       {item.badge && (
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${item.badgeColor === 'red'
-                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                            : item.badge === 'AI'
-                              ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30'
-                              : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                          : item.badge === 'AI'
+                            ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30'
+                            : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                           }`}>
                           {item.badge}
                         </span>
@@ -209,15 +240,22 @@ export function Sidebar() {
 
         {/* User Profile */}
         <div className="px-4 py-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-2 border-gray-700">
               <User className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white truncate">Analyst</p>
-              <p className="text-xs text-gray-400 truncate">analyst@tradenest.io</p>
+              <p className="text-sm font-semibold text-white truncate">{userName}</p>
+              <p className="text-xs text-gray-400 truncate">{userEmail}</p>
             </div>
           </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
+          </button>
         </div>
       </div>
     </div>

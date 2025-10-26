@@ -55,6 +55,15 @@ export interface Anomaly {
 }
 
 export type AlertStatus = 'new' | 'viewed' | 'resolved';
+export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
+
+export interface RiskBreakdown {
+  price_deviation: number;
+  volume_surge: number;
+  fx_exposure: number;
+  supply_chain_risk: number;
+  historical_volatility: number;
+}
 
 export interface Alert {
   id: string;
@@ -62,6 +71,10 @@ export interface Alert {
   status: AlertStatus;
   created_at: string;
   resolved_at?: string;
+  // Risk scoring fields (Task 8.6)
+  risk_score?: number;
+  risk_level?: RiskLevel;
+  risk_breakdown?: RiskBreakdown;
 }
 
 export interface User {
@@ -167,4 +180,170 @@ export interface TradePartner {
   total_shipments: number;
   total_value: number;
   avg_unit_price: number;
+}
+
+// =====================================================
+// Task 6.3: Custom Rules Types
+// =====================================================
+
+export interface RuleCondition {
+  field: string;
+  operator: string;
+  value: number | string | [number, number];
+  period?: string;
+}
+
+export interface RuleLogic {
+  conditions: RuleCondition[];
+  logic: 'AND' | 'OR';
+  alert_type: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+}
+
+export interface CustomRule {
+  id: string;
+  name: string;
+  description: string;
+  logic_json: RuleLogic;
+  user_id: string;
+  active: boolean;
+  alert_type: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RuleExecution {
+  id: string;
+  rule_id: string;
+  executed_at: string;
+  matches_found: number;
+  anomalies_created: number;
+  execution_time_ms: number;
+  metadata: Record<string, any>;
+}
+
+// =====================================================
+// Phase 7: Gazette Tracker Types
+// =====================================================
+
+export type GazetteCategory = 'trade_remedy' | 'tariff_change' | 'import_restriction' | 'anti_dumping';
+
+export interface Gazette {
+  id: string;
+  gazette_number: string;
+  publication_date: string;
+  category: GazetteCategory;
+  pdf_url?: string;
+  title: string;
+  summary?: string;
+  extracted_data?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GazetteAffectedItem {
+  id: string;
+  gazette_id: string;
+  hs_codes: string[];
+  affected_countries: string[];
+  summary?: string;
+  remedy_type?: string;
+  expiry_date?: string;
+  created_at: string;
+}
+
+export interface GazetteSubscription {
+  id: string;
+  user_id: string;
+  hs_code?: string;
+  country_code?: string;
+  category?: string;
+  active: boolean;
+  created_at: string;
+}
+
+export interface GazetteSummary {
+  id: string;
+  gazette_number: string;
+  publication_date: string;
+  category: GazetteCategory;
+  title: string;
+  summary?: string;
+  pdf_url?: string;
+  unique_hs_codes: number;
+  unique_countries: number;
+  remedy_types?: string[];
+}
+
+// =====================================================
+// Phase 7: Trade Remedy Workbench Types
+// =====================================================
+
+export type TradeRemedyCaseStatus = 'draft' | 'submitted' | 'under_investigation' | 'finalized';
+
+export interface TradeRemedyCase {
+  id: string;
+  case_number: string;
+  case_name: string;
+  petitioner_name?: string;
+  subject_product?: string;
+  hs_code?: string;
+  country_of_origin?: string;
+  petition_date?: string;
+  investigation_start_date?: string;
+  preliminary_determination_date?: string;
+  final_determination_date?: string;
+  dumping_margin_percent?: number;
+  price_depression_percent?: number;
+  volume_impact_percent?: number;
+  status: TradeRemedyCaseStatus;
+  user_id: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ImportDataAnalysis {
+  id: string;
+  case_id: string;
+  period_start?: string;
+  period_end?: string;
+  total_import_volume?: number;
+  total_import_value?: number;
+  average_unit_price?: number;
+  currency?: string;
+  benchmark_price?: number;
+  market_price?: number;
+  domestic_price?: number;
+  dumping_amount?: number;
+  dumping_margin?: number;
+  created_at: string;
+}
+
+export interface InjuryAnalysis {
+  id: string;
+  case_id: string;
+  domestic_market_share_loss?: number;
+  price_depression?: number;
+  revenue_loss?: number;
+  employment_impact?: number;
+  estimated_revenue_loss?: number;
+  profit_margin_impact?: number;
+  causation_established?: boolean;
+  causation_summary?: string;
+  created_at: string;
+}
+
+export interface TradeRemedyEvidence {
+  id: string;
+  case_id: string;
+  document_type?: string;
+  file_url?: string;
+  file_name?: string;
+  file_size?: number;
+  generated_at: string;
+  sections?: Record<string, any>;
+  charts_data?: Record<string, any>;
+  created_at: string;
 }

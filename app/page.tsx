@@ -1,18 +1,27 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { isAuthenticated } from '@/lib/supabase/auth-helpers';
 
 export default function Home() {
   const router = useRouter();
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Auto-redirect after 2 seconds
-    const timer = setTimeout(() => {
-      router.push('/dashboard');
-    }, 2000);
-    return () => clearTimeout(timer);
+    const checkAuth = async () => {
+      const authenticated = await isAuthenticated();
+      setTimeout(() => {
+        if (authenticated) {
+          router.push('/dashboard');
+        } else {
+          router.push('/login');
+        }
+      }, 1000);
+      setChecking(false);
+    };
+    checkAuth();
   }, [router]);
 
   return (

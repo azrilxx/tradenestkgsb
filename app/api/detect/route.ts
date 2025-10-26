@@ -11,7 +11,7 @@ const supabase = createClient();
 async function runCustomRulesDetection() {
   try {
     console.log('🔧 Running custom rules detection...');
-    
+
     // Get all active custom rules
     const { data: rules, error: rulesError } = await supabase
       .from('custom_rules')
@@ -37,11 +37,11 @@ async function runCustomRulesDetection() {
       try {
         console.log(`Executing rule: ${rule.name}`);
         const startTime = Date.now();
-        
+
         // Evaluate the rule
         const matches = await evaluator.evaluateRule(rule.logic_json);
         const executionTime = Date.now() - startTime;
-        
+
         // Create anomalies for matches
         let alertsCreated = 0;
         for (const match of matches) {
@@ -51,10 +51,10 @@ async function runCustomRulesDetection() {
               .from('anomalies')
               .insert({
                 product_id: match.product_id,
-                type: rule.logic_json.alert_type || 'CUSTOM_PATTERN',
+                type: (rule.logic_json.alert_type || 'CUSTOM_PATTERN') as any,
                 severity: match.severity,
-                description: `Custom rule "${rule.name}" triggered: ${match.matched_conditions.join(', ')}`,
-                metadata: {
+                details: {
+                  description: `Custom rule "${rule.name}" triggered: ${match.matched_conditions.join(', ')}`,
                   rule_id: rule.id,
                   rule_name: rule.name,
                   matched_conditions: match.matched_conditions,
@@ -107,7 +107,7 @@ async function runCustomRulesDetection() {
 
         totalAlertsCreated += alertsCreated;
         console.log(`Rule "${rule.name}" completed: ${matches.length} matches, ${alertsCreated} alerts created`);
-        
+
       } catch (error) {
         console.error(`Error executing rule ${rule.name}:`, error);
         errors.push(`Failed to execute rule ${rule.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -115,7 +115,7 @@ async function runCustomRulesDetection() {
     }
 
     console.log(`Custom rules detection completed: ${totalAlertsCreated} alerts created from ${rules.length} rules`);
-    
+
     return {
       alertsCreated: totalAlertsCreated,
       rulesExecuted: rules.length,
@@ -137,13 +137,13 @@ async function runCustomRulesDetection() {
 export async function POST() {
   try {
     console.log('🔍 Detection API called...');
-    
+
     // Run standard anomaly detection
     const result = await generateAllAlerts();
-    
+
     // Run custom rules detection
     const customRulesResult = await runCustomRulesDetection();
-    
+
     return NextResponse.json({
       success: result.success,
       message: `Detection complete. ${result.alertsCreated} standard alerts created, ${customRulesResult.alertsCreated} custom rule alerts created.`,

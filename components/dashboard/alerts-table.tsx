@@ -4,12 +4,15 @@ import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AnomalySeverity, AlertStatus, AnomalyType } from '@/types/database';
-import { DollarSign, BarChart3, Ship, TrendingUp } from 'lucide-react';
+import { DollarSign, BarChart3, Ship, TrendingUp, Lightbulb } from 'lucide-react';
+import { SmartInsights } from './smart-insights';
 
 interface Alert {
   id: string;
   status: AlertStatus;
   created_at: string;
+  risk_score?: number;
+  risk_level?: 'low' | 'medium' | 'high' | 'critical';
   anomalies: {
     id: string;
     type: AnomalyType;
@@ -34,6 +37,7 @@ export function AlertsTable({ alerts, onStatusChange, onViewDetails, onDownloadP
   const [sortBy, setSortBy] = useState<'date' | 'severity'>('date');
   const [filterSeverity, setFilterSeverity] = useState<AnomalySeverity | 'all'>('all');
   const [filterStatus, setFilterStatus] = useState<AlertStatus | 'all'>('all');
+  const [showInsightsForId, setShowInsightsForId] = useState<string | null>(null);
 
   const getTypeLabel = (type: AnomalyType) => {
     const labels = {
@@ -62,6 +66,14 @@ export function AlertsTable({ alerts, onStatusChange, onViewDetails, onDownloadP
       resolved: 'resolved',
     };
     return variants[status];
+  };
+
+  const getRiskColor = (riskScore?: number) => {
+    if (!riskScore) return 'bg-gray-100';
+    if (riskScore >= 70) return 'bg-red-500';
+    if (riskScore >= 50) return 'bg-orange-500';
+    if (riskScore >= 30) return 'bg-yellow-500';
+    return 'bg-green-500';
   };
 
   // Filter and sort alerts
@@ -144,10 +156,16 @@ export function AlertsTable({ alerts, onStatusChange, onViewDetails, onDownloadP
                 Severity
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Risk Score
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Detected
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Insights
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
@@ -157,7 +175,7 @@ export function AlertsTable({ alerts, onStatusChange, onViewDetails, onDownloadP
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredAlerts.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
                   No alerts found matching your filters
                 </td>
               </tr>
@@ -200,12 +218,36 @@ export function AlertsTable({ alerts, onStatusChange, onViewDetails, onDownloadP
                       </Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
+                      {alert.risk_score !== undefined ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-20 bg-gray-200 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full ${getRiskColor(alert.risk_score)}`}
+                              style={{ width: `${alert.risk_score}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm font-medium">{alert.risk_score}</span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <Badge variant={getStatusBadgeVariant(alert.status)}>
                         {alert.status}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(anomaly.detected_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setShowInsightsForId(showInsightsForId === alert.id ? null : alert.id)}
+                      >
+                        {showInsightsForId === alert.id ? 'Hide' : 'Show'} Insights
+                      </Button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="flex gap-2">
@@ -244,6 +286,13 @@ export function AlertsTable({ alerts, onStatusChange, onViewDetails, onDownloadP
           </tbody>
         </table>
       </div>
+
+      {/* Insights Panels */}
+      {showInsightsForId && (
+        <div className="mt-4">
+          <SmartInsights alertId={showInsightsForId} />
+        </div>
+      )}
     </div>
   );
 }

@@ -1,11 +1,25 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
+import { getServerUser } from '@/lib/supabase/server';
 
 /**
  * GET /api/alerts - Get all alerts with details
  */
 export async function GET(request: Request) {
   try {
+    // Get authenticated user
+    const user = await getServerUser();
+
+    // If no user, return empty array (or redirect to login)
+    if (!user) {
+      return NextResponse.json({
+        success: false,
+        error: 'Unauthorized',
+        data: [],
+        count: 0,
+      }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status'); // Filter by status
     const severity = searchParams.get('severity'); // Filter by severity
@@ -78,6 +92,16 @@ export async function GET(request: Request) {
  */
 export async function PATCH(request: Request) {
   try {
+    // Get authenticated user
+    const user = await getServerUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { alertId, status } = body;
 

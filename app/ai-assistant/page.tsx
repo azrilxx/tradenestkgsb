@@ -184,8 +184,8 @@ export default function AIAssistant() {
                   <div className={`max-w-[85%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}>
                     <div
                       className={`p-4 rounded-2xl ${message.role === 'user'
-                          ? 'bg-blue-600 text-white rounded-ee-none'
-                          : 'bg-white border border-gray-200 text-gray-900 rounded-es-none shadow-sm'
+                        ? 'bg-blue-600 text-white rounded-ee-none'
+                        : 'bg-white border border-gray-200 text-gray-900 rounded-es-none shadow-sm'
                         }`}
                     >
                       <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>

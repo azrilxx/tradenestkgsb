@@ -1,16 +1,22 @@
 /**
- * Vercel AI Gateway Integration
+ * OpenRouter AI Integration
  *
- * This module provides AI-powered features for TradeNest using OpenAI through Vercel AI Gateway.
- * The gateway provides caching, rate limiting, and cost optimization.
+ * This module provides AI-powered features for TradeNest using OpenRouter.
+ * OpenRouter provides access to multiple AI models through a single API.
  */
 
 import { openai } from '@ai-sdk/openai';
 import { generateText, streamText } from 'ai';
 
-// Note: This requires an OpenAI API key (starts with sk-)
-// If using Vercel AI Gateway, deploy to Vercel and it will automatically wrap calls
-// For local testing, use a standard OpenAI key from https://platform.openai.com/api-keys
+// Configure OpenAI provider to use OpenRouter
+const openrouterClient = openai({
+  apiKey: process.env.OPENAI_API_KEY, // Uses OpenRouter key (sk-or-v1-...)
+  baseURL: 'https://openrouter.ai/api/v1',
+  defaultHeaders: {
+    'HTTP-Referer': process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3005',
+    'X-Title': 'TradeNest AI Assistant',
+  },
+});
 
 /**
  * AI-powered risk analyst specialized in trade-based money laundering detection
@@ -28,7 +34,7 @@ export const riskAnalyst = {
     shipmentDetails?: any;
   }) {
     const { text } = await generateText({
-      model: openai('gpt-4-turbo'),
+      model: openrouterClient('openai/gpt-4-turbo'),
       system: `You are a trade-based money laundering (TBML) expert helping compliance officers understand risk alerts.
 
 Your role:
@@ -67,7 +73,7 @@ Provide:
     products?: string[];
   }) {
     const { text } = await generateText({
-      model: openai('gpt-4-turbo'),
+      model: openrouterClient('openai/gpt-4-turbo'),
       system: `You are a trade compliance analyst assessing companies for trade-based money laundering risk.
 
 Analyze companies based on:
@@ -114,7 +120,7 @@ Detailed Context:
 ${JSON.stringify(context, null, 2)}` : '';
 
     const { text } = await generateText({
-      model: openai('gpt-4-turbo'),
+      model: openrouterClient('openai/gpt-4-turbo'),
       system: `You are TradeNest AI Assistant, helping users analyze trade-based money laundering data.
 
 Your capabilities:
@@ -135,7 +141,7 @@ Be specific, cite data from the context provided, and give actionable insights.`
    */
   streamAnswer(query: string, context?: any) {
     return streamText({
-      model: openai('gpt-4-turbo'),
+      model: openrouterClient('openai/gpt-4-turbo'),
       system: `You are TradeNest AI Assistant, a trade compliance expert specializing in Malaysian trade and money laundering detection.`,
       prompt: query + (context ? `\n\nContext: ${JSON.stringify(context)}` : ''),
     });
@@ -152,7 +158,7 @@ export async function analyzeMatradeStats(stats: {
   exportingPercentage?: number;
 }) {
   const { text } = await generateText({
-    model: openai('gpt-4-turbo'),
+    model: openrouterClient('openai/gpt-4-turbo'),
     system: `You are a Malaysian trade analyst interpreting MATRADE (Malaysia External Trade Development Corporation) statistics.
 
 Provide insights on:
@@ -176,7 +182,7 @@ Provide 3-5 key insights for TradeNest platform users.`,
  */
 export async function categorizeCompanyRisk(companies: any[]) {
   const { text } = await generateText({
-    model: openai('gpt-4-turbo'),
+    model: openrouterClient('openai/gpt-4-turbo'),
     system: `You are a risk categorization AI for trade compliance.
 
 Categorize companies into:
