@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  getBenchmarkData,
-  getPriceTrendData,
+import { 
+  getBenchmarkData, 
+  getPriceTrendData, 
   getTopProductsByVolume,
-  BenchmarkFilters
+  BenchmarkFilters,
+  PriceTrendData
 } from '@/lib/analytics/benchmarks';
 
 /**
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get additional data if HS code is specified
-    let priceTrendData = [];
+    let priceTrendData: PriceTrendData[] = [];
     if (hsCode) {
       priceTrendData = await getPriceTrendData(hsCode, trendMonths);
     }
