@@ -23,6 +23,8 @@ export default function CompaniesPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState('all');
+  const [selectedSector, setSelectedSector] = useState('all');
 
   useEffect(() => {
     async function fetchCompanies() {
