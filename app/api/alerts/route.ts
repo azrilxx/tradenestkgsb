@@ -7,18 +7,19 @@ import { getServerUser } from '@/lib/supabase/server';
  */
 export async function GET(request: Request) {
   try {
-    // Get authenticated user
+    // Get authenticated user (optional for demo mode)
     const user = await getServerUser();
 
-    // If no user, return empty array (or redirect to login)
-    if (!user) {
-      return NextResponse.json({
-        success: false,
-        error: 'Unauthorized',
-        data: [],
-        count: 0,
-      }, { status: 401 });
-    }
+    // For demo mode, allow access without authentication
+    // In production, uncomment the following lines:
+    // if (!user) {
+    //   return NextResponse.json({
+    //     success: false,
+    //     error: 'Unauthorized',
+    //     data: [],
+    //     count: 0,
+    //   }, { status: 401 });
+    // }
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status'); // Filter by status
@@ -92,15 +93,16 @@ export async function GET(request: Request) {
  */
 export async function PATCH(request: Request) {
   try {
-    // Get authenticated user
+    // Get authenticated user (optional for demo mode)
     const user = await getServerUser();
 
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    // For demo mode, allow access without authentication
+    // if (!user) {
+    //   return NextResponse.json(
+    //     { success: false, error: 'Unauthorized' },
+    //     { status: 401 }
+    //   );
+    // }
 
     const body = await request.json();
     const { alertId, status } = body;

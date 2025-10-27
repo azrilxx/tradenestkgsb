@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Building2, Search, Globe, TrendingUp, Package } from 'lucide-react';
+import { Building2, Search, Globe, TrendingUp, Package, Filter } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase/client';
 
 interface Company {
   id: string;
@@ -26,33 +27,65 @@ export default function CompaniesPage() {
   useEffect(() => {
     async function fetchCompanies() {
       try {
-        // For now, we'll get companies from the database
-        const response = await fetch('/api/trade/drilldown?limit=100');
-        const result = await response.json();
+        // First try to get companies directly from database
+        const { data: dbCompanies, error } = await supabase
+          .from('companies')
+          .select('*')
+          .order('name', { ascending: true });
 
-        if (result.success && result.data?.shipments) {
-          // Extract unique companies from shipments
-          const companyMap = new Map<string, Company>();
+        if (!error && dbCompanies && dbCompanies.length > 0) {
+          // Get shipment stats for each company
+          const companiesWithStats: Company[] = await Promise.all(
+            dbCompanies.map(async (company) => {
+              const { data: shipments } = await supabase
+                .from('shipments')
+                .select('total_value')
+                .eq('company_id', company.id);
 
-          result.data.shipments.forEach((shipment: any) => {
-            if (!companyMap.has(shipment.company_id)) {
-              companyMap.set(shipment.company_id, {
-                id: shipment.company_id,
-                name: shipment.company_name,
-                country: shipment.company_country,
-                type: shipment.company_type,
-                sector: shipment.company_sector,
-                total_shipments: 0,
-                total_value: 0,
-              });
-            }
+              const total_shipments = shipments?.length || 0;
+              const total_value = shipments?.reduce((sum, s) => sum + (s.total_value || 0), 0) || 0;
 
-            const company = companyMap.get(shipment.company_id)!;
-            company.total_shipments += 1;
-            company.total_value += shipment.total_value || 0;
-          });
+              return {
+                id: company.id,
+                name: company.name,
+                country: company.country,
+                type: company.type,
+                sector: company.sector,
+                total_shipments,
+                total_value,
+              };
+            })
+          );
 
-          setCompanies(Array.from(companyMap.values()));
+          setCompanies(companiesWithStats);
+        } else {
+          // Fallback: extract from shipments
+          const response = await fetch('/api/trade/drilldown?limit=100');
+          const result = await response.json();
+          
+          if (result.success && result.data?.shipments) {
+            const companyMap = new Map<string, Company>();
+            
+            result.data.shipments.forEach((shipment: any) => {
+              if (!companyMap.has(shipment.company_id)) {
+                companyMap.set(shipment.company_id, {
+                  id: shipment.company_id,
+                  name: shipment.company_name,
+                  country: shipment.company_country,
+                  type: shipment.company_type,
+                  sector: shipment.company_sector,
+                  total_shipments: 0,
+                  total_value: 0,
+                });
+              }
+              
+              const company = companyMap.get(shipment.company_id)!;
+              company.total_shipments += 1;
+              company.total_value += shipment.total_value || 0;
+            });
+            
+            setCompanies(Array.from(companyMap.values()));
+          }
         }
       } catch (err) {
         console.error('Error fetching companies:', err);
@@ -60,15 +93,23 @@ export default function CompaniesPage() {
         setLoading(false);
       }
     }
-
+    
     fetchCompanies();
   }, []);
 
-  const filteredCompanies = companies.filter(company =>
-    company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    company.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    company.sector.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCompanies = companies.filter(company => {
+    const matchesSearch = !searchQuery || 
+      company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      company.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      company.sector.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesType = selectedType === 'all' || company.type === selectedType;
+    const matchesSector = selectedSector === 'all' || company.sector === selectedSector;
+    
+    return matchesSearch && matchesType && matchesSector;
+  });
+
+  const uniqueSectors = Array.from(new Set(companies.map(c => c.sector))).sort();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -111,18 +152,66 @@ export default function CompaniesPage() {
         </div>
       </div>
 
-      {/* Search Bar */}
+      {/* Search & Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search companies by name, country, or sector..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <div className="space-y-4">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search companies by name, country, or sector..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            {/* Filters */}
+            <div className="flex gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-gray-600" />
+                <label className="text-sm font-medium text-gray-700">Type:</label>
+                <select
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value)}
+                  className="border rounded px-3 py-1.5 text-sm"
+                >
+                  <option value="all">All Types</option>
+                  <option value="importer">Importer</option>
+                  <option value="exporter">Exporter</option>
+                  <option value="both">Both</option>
+                </select>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700">Sector:</label>
+                <select
+                  value={selectedSector}
+                  onChange={(e) => setSelectedSector(e.target.value)}
+                  className="border rounded px-3 py-1.5 text-sm min-w-[200px]"
+                >
+                  <option value="all">All Sectors</option>
+                  {uniqueSectors.map(sector => (
+                    <option key={sector} value={sector}>{sector}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {(selectedType !== 'all' || selectedSector !== 'all') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedType('all');
+                    setSelectedSector('all');
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

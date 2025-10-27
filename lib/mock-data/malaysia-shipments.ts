@@ -47,15 +47,15 @@ const VESSEL_NAMES = {
 const TRADE_LANES = [
   // Primary trade lanes (60% of shipments)
   { origin: 'China', destination: 'Malaysia', frequency: 0.25, sectors: ['Steel & Metals', 'Electronics & Electrical', 'Chemicals & Petrochemicals'] },
-  { origin: 'Singapore', destination: 'Malaysia', frequency: 0.20, sectors: ['Electronics & Electrical', 'Chemicals & Petrochemicals'] },
-  { origin: 'Malaysia', destination: 'Singapore', frequency: 0.15, sectors: ['Electronics & Electrical', 'Chemicals & Petrochemicals'] },
+  { origin: 'Singapore', destination: 'Malaysia', frequency: 0.20, sectors: ['Electronics & Electrical', 'Chemicals & Petrochemicals', 'Furniture'] },
+  { origin: 'Malaysia', destination: 'Singapore', frequency: 0.15, sectors: ['Electronics & Electrical', 'Chemicals & Petrochemicals', 'Furniture'] },
 
   // Secondary trade lanes (30% of shipments)
   { origin: 'Japan', destination: 'Malaysia', frequency: 0.08, sectors: ['Automotive & Parts', 'Electronics & Electrical'] },
   { origin: 'South Korea', destination: 'Malaysia', frequency: 0.07, sectors: ['Automotive & Parts', 'Electronics & Electrical'] },
   { origin: 'Germany', destination: 'Malaysia', frequency: 0.06, sectors: ['Chemicals & Petrochemicals', 'Automotive & Parts'] },
-  { origin: 'Malaysia', destination: 'China', frequency: 0.05, sectors: ['Steel & Metals', 'Food & Beverage'] },
-  { origin: 'Malaysia', destination: 'Thailand', frequency: 0.04, sectors: ['Textiles & Apparel', 'Food & Beverage'] },
+  { origin: 'Malaysia', destination: 'China', frequency: 0.05, sectors: ['Steel & Metals', 'Food & Beverage', 'Furniture'] },
+  { origin: 'Malaysia', destination: 'Thailand', frequency: 0.04, sectors: ['Textiles & Apparel', 'Food & Beverage', 'Furniture'] },
 
   // Long-haul trade (10% of shipments)
   { origin: 'United States', destination: 'Malaysia', frequency: 0.03, sectors: ['Food & Beverage', 'Textiles & Apparel'] },
@@ -73,6 +73,7 @@ const HS_CODES_BY_SECTOR = {
   'Food & Beverage': ['1001', '1507', '1701', '2009'],
   'Textiles & Apparel': ['5205', '6204', '6109', '5407'],
   'Automotive & Parts': ['8708', '8703', '4011', '8704'],
+  'Furniture': ['9403', '9401', '9404', '9405'], // Furniture HS codes
 };
 
 /**
@@ -93,24 +94,39 @@ export function generateMalaysiaShipments(
     // Select trade lane based on frequency
     const tradeLane = selectTradeLane();
 
-    // Get companies from appropriate sectors
-    const sectorCompanies = companies.filter(c => tradeLane.sectors.includes(c.sector));
+    // Get companies from appropriate sectors with relaxed matching
+    const sectorCompanies = companies.filter(c => {
+      const normalizedSector = normalizeSector(c.sector);
+      return tradeLane.sectors.some(sector => sector === normalizedSector);
+    });
+    if (sectorCompanies.length === 0) continue; // Skip if no matching companies
     const company = sectorCompanies[Math.floor(Math.random() * sectorCompanies.length)];
 
     // Get ports for origin and destination countries
     const originPorts = ports.filter(p => p.country === tradeLane.origin);
     const destPorts = ports.filter(p => p.country === tradeLane.destination);
 
+    if (originPorts.length === 0 || destPorts.length === 0) continue; // Skip if no ports
+
     const originPort = originPorts[Math.floor(Math.random() * originPorts.length)];
     const destPort = destPorts[Math.floor(Math.random() * destPorts.length)];
 
     // Get product from appropriate sector
+    const normalizedCompanySector = normalizeSector(company.sector);
     const sectorProducts = products.filter(p => {
-      const sectorHsCodes = HS_CODES_BY_SECTOR[company.sector as keyof typeof HS_CODES_BY_SECTOR];
+      const sectorHsCodes = HS_CODES_BY_SECTOR[normalizedCompanySector as keyof typeof HS_CODES_BY_SECTOR];
       return sectorHsCodes?.includes(p.hs_code);
     });
 
-    const product = sectorProducts[Math.floor(Math.random() * sectorProducts.length)];
+    if (sectorProducts.length === 0) {
+      // If no matching products by HS code, just pick any random product
+      const product = products[Math.floor(Math.random() * products.length)];
+      if (!product) continue;
+    }
+
+    const product = sectorProducts.length > 0
+      ? sectorProducts[Math.floor(Math.random() * sectorProducts.length)]
+      : products[Math.floor(Math.random() * products.length)];
 
     // Generate shipment details
     const shipmentDate = addDays(startDate, Math.floor(Math.random() * daysDiff));
@@ -216,9 +232,43 @@ function getSectorBasePrice(sector: string): number {
     'Food & Beverage': 3.5, // RM 3.50/kg
     'Textiles & Apparel': 12.0, // RM 12/kg
     'Automotive & Parts': 25.0, // RM 25/kg
+    'Furniture': 8.0, // RM 8/kg
   };
 
   return prices[sector as keyof typeof prices] || 5.0;
+}
+
+/**
+ * Normalize sector names to match expected trade lane sectors
+ */
+function normalizeSector(sector: string): string {
+  const sectorUpper = sector.toUpperCase();
+
+  // Map various sector names to standard sectors
+  if (sectorUpper.includes('STEEL') || sectorUpper.includes('METAL')) {
+    return 'Steel & Metals';
+  }
+  if (sectorUpper.includes('ELECTRONIC') || sectorUpper.includes('ELECTRICAL')) {
+    return 'Electronics & Electrical';
+  }
+  if (sectorUpper.includes('CHEMICAL') || sectorUpper.includes('PETROCHEMICAL')) {
+    return 'Chemicals & Petrochemicals';
+  }
+  if (sectorUpper.includes('FOOD') || sectorUpper.includes('BEVERAGE') || sectorUpper.includes('AGRICULTURE')) {
+    return 'Food & Beverage';
+  }
+  if (sectorUpper.includes('TEXTILE') || sectorUpper.includes('APPAREL')) {
+    return 'Textiles & Apparel';
+  }
+  if (sectorUpper.includes('AUTOMOTIVE') || sectorUpper.includes('AUTO')) {
+    return 'Automotive & Parts';
+  }
+  if (sectorUpper.includes('FURNITURE') || sectorUpper.includes('WOOD')) {
+    return 'Furniture'; // Add this as a fallback
+  }
+
+  // Default fallback
+  return sector;
 }
 
 // Export for use in seed script

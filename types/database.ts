@@ -47,8 +47,9 @@ export type AnomalySeverity = 'low' | 'medium' | 'high' | 'critical';
 export interface Anomaly {
   id: string;
   type: AnomalyType;
-  product_id: string;
+  product_id: string | null;
   severity: AnomalySeverity;
+  description: string;
   detected_at: string;
   details: Record<string, any>;
   created_at: string;
@@ -81,6 +82,31 @@ export interface User {
   id: string;
   email: string;
   full_name?: string;
+  created_at: string;
+}
+
+export type SubscriptionTier = 'free' | 'professional' | 'enterprise';
+
+export interface UserSubscription {
+  id: string;
+  user_id: string;
+  tier: SubscriptionTier;
+  features?: Record<string, any>;
+  usage_limits?: Record<string, any>;
+  started_at: string;
+  expires_at: string | null;
+  is_active?: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IntelligenceAnalysisUsage {
+  id: string;
+  user_id: string;
+  alert_id: string;
+  analysis_type: string;
+  time_window?: number;
+  metadata?: Record<string, any>;
   created_at: string;
 }
 

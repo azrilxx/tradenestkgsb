@@ -179,12 +179,35 @@ export function generateAnomaly(
   productId: string | null,
   severity: AnomalySeverity,
   detectedAt: Date,
-  details: Record<string, any>
+  details: Record<string, any>,
+  description?: string
 ): Omit<Anomaly, 'id' | 'created_at'> {
+  // Generate a description if not provided
+  let desc = description;
+  if (!desc) {
+    switch (type) {
+      case 'price_spike':
+        desc = `Price spike detected: ${details.percentage_change?.toFixed(1)}% increase`;
+        break;
+      case 'tariff_change':
+        desc = `Tariff rate change: ${details.previous_rate?.toFixed(1)}% to ${details.current_rate?.toFixed(1)}%`;
+        break;
+      case 'freight_surge':
+        desc = `Freight index surge on ${details.route}: ${details.percentage_change?.toFixed(1)}% increase`;
+        break;
+      case 'fx_volatility':
+        desc = `Currency volatility detected in ${details.currency_pair}: ${details.percentage_change?.toFixed(1)}% change`;
+        break;
+      default:
+        desc = `Anomaly detected: ${type}`;
+    }
+  }
+
   return {
     type,
-    product_id: productId || '',
+    product_id: productId || null,
     severity,
+    description: desc,
     detected_at: detectedAt.toISOString(),
     details,
   };
@@ -192,175 +215,125 @@ export function generateAnomaly(
 
 /**
  * Generate demo anomalies for various scenarios
+ * @param count - Number of anomalies to generate (default: 10, recommended: 100+)
  */
-export function generateDemoAnomalies(): Omit<Anomaly, 'id' | 'created_at'>[] {
+export function generateDemoAnomalies(count: number = 10): Omit<Anomaly, 'id' | 'created_at'>[] {
   const anomalies: Omit<Anomaly, 'id' | 'created_at'>[] = [];
   const now = new Date();
+  const anomalyTypes: AnomalyType[] = ['price_spike', 'tariff_change', 'freight_surge', 'fx_volatility'];
+  const severities: AnomalySeverity[] = ['low', 'medium', 'high', 'critical'];
 
-  // Critical: Major price spike on electronics
-  anomalies.push(
-    generateAnomaly(
-      'price_spike',
-      'product-electronics-1',
-      'critical',
-      subDays(now, 2),
-      {
-        previous_price: 1500.0,
-        current_price: 3200.0,
-        z_score: 4.5,
-        threshold: 2.0,
-        percentage_change: 113.3,
-      }
-    )
-  );
+  const categories = ['Electronics', 'Textiles', 'Agriculture', 'Automotive', 'Furniture',
+    'Rubber', 'Chemicals', 'Petroleum', 'Machinery', 'Food'];
+  const routes = ['China-Malaysia', 'Europe-Malaysia', 'USA-Malaysia', 'Singapore-Malaysia', 'Thailand-Malaysia'];
+  const currencyPairs = ['MYR/USD', 'MYR/CNY', 'MYR/EUR', 'MYR/SGD', 'MYR/JPY'];
 
-  // High: Tariff change on textiles
-  anomalies.push(
-    generateAnomaly(
-      'tariff_change',
-      'product-textiles-1',
-      'high',
-      subDays(now, 5),
-      {
-        previous_rate: 5.0,
-        current_rate: 15.0,
-        percentage_change: 200.0,
-        effective_date: format(subDays(now, 5), 'yyyy-MM-dd'),
-      }
-    )
-  );
+  // Generate diverse anomalies
+  for (let i = 0; i < count; i++) {
+    const type = anomalyTypes[randomInt(0, anomalyTypes.length - 1)];
+    const severity = severities[randomInt(0, severities.length - 1)];
+    const daysAgo = randomInt(1, 90); // Spread over past 90 days
+    const detectedAt = subDays(now, daysAgo);
+    const category = categories[randomInt(0, categories.length - 1)];
 
-  // High: Freight surge on China-Malaysia route
-  anomalies.push(
-    generateAnomaly(
-      'freight_surge',
-      null,
-      'high',
-      subDays(now, 3),
-      {
-        route: 'China-Malaysia',
-        previous_index: 1200.0,
-        current_index: 1680.0,
-        percentage_change: 40.0,
-      }
-    )
-  );
+    let productId: string | null = `product-${category.toLowerCase()}-${randomInt(1, 10)}`;
 
-  // Medium: FX volatility MYR/USD
-  anomalies.push(
-    generateAnomaly(
-      'fx_volatility',
-      null,
-      'medium',
-      subDays(now, 1),
-      {
-        currency_pair: 'MYR/USD',
-        volatility_score: 0.035,
-        threshold: 0.025,
-        recent_range: '4.45 - 4.68',
-      }
-    )
-  );
+    let details: Record<string, any> = {};
 
-  // Medium: Price spike on palm oil
-  anomalies.push(
-    generateAnomaly(
-      'price_spike',
-      'product-palm-oil-1',
-      'medium',
-      subDays(now, 7),
-      {
-        previous_price: 3200.0,
-        current_price: 3850.0,
-        z_score: 2.3,
-        threshold: 2.0,
-        percentage_change: 20.3,
-      }
-    )
-  );
+    switch (type) {
+      case 'price_spike':
+        {
+          const basePrice = randomInRange(50, 5000);
+          const percentageChange = severity === 'critical'
+            ? randomInRange(100, 200)
+            : severity === 'high'
+              ? randomInRange(50, 100)
+              : severity === 'medium'
+                ? randomInRange(20, 50)
+                : randomInRange(5, 20);
+          const newPrice = basePrice * (1 + percentageChange / 100);
+          const zScore = severity === 'critical' ? randomInRange(4.0, 6.0)
+            : severity === 'high' ? randomInRange(3.0, 4.0)
+              : randomInRange(2.0, 3.0);
 
-  // Critical: Major freight cost increase
-  anomalies.push(
-    generateAnomaly(
-      'freight_surge',
-      null,
-      'critical',
-      subDays(now, 4),
-      {
-        route: 'Europe-Malaysia',
-        previous_index: 2100.0,
-        current_index: 3360.0,
-        percentage_change: 60.0,
-      }
-    )
-  );
+          details = {
+            previous_price: basePrice,
+            current_price: newPrice,
+            z_score: zScore,
+            threshold: 2.0,
+            percentage_change: percentageChange,
+          };
+        }
+        break;
 
-  // High: Price spike on automotive parts
-  anomalies.push(
-    generateAnomaly(
-      'price_spike',
-      'product-automotive-1',
-      'high',
-      subDays(now, 6),
-      {
-        previous_price: 450.0,
-        current_price: 720.0,
-        z_score: 3.2,
-        threshold: 2.0,
-        percentage_change: 60.0,
-      }
-    )
-  );
+      case 'tariff_change':
+        {
+          const baseRate = randomInRange(0, 20);
+          const changeFactor = severity === 'critical' || severity === 'high'
+            ? randomInRange(1.5, 3.0)
+            : severity === 'medium'
+              ? randomInRange(1.2, 1.5)
+              : randomInRange(1.05, 1.2);
+          const newRate = baseRate * changeFactor;
 
-  // Low: Minor tariff adjustment
-  anomalies.push(
-    generateAnomaly(
-      'tariff_change',
-      'product-furniture-1',
-      'low',
-      subDays(now, 10),
-      {
-        previous_rate: 8.0,
-        current_rate: 10.0,
-        percentage_change: 25.0,
-        effective_date: format(subDays(now, 10), 'yyyy-MM-dd'),
-      }
-    )
-  );
+          details = {
+            previous_rate: baseRate,
+            current_rate: newRate,
+            percentage_change: (changeFactor - 1) * 100,
+            effective_date: format(detectedAt, 'yyyy-MM-dd'),
+          };
+        }
+        break;
 
-  // Medium: Rubber price increase
-  anomalies.push(
-    generateAnomaly(
-      'price_spike',
-      'product-rubber-1',
-      'medium',
-      subDays(now, 8),
-      {
-        previous_price: 5.8,
-        current_price: 7.2,
-        z_score: 2.1,
-        threshold: 2.0,
-        percentage_change: 24.1,
-      }
-    )
-  );
+      case 'freight_surge':
+        productId = null; // Freight is not product-specific
+        {
+          const route = routes[randomInt(0, routes.length - 1)];
+          const baseIndex = randomInRange(400, 2500);
+          const multiplier = severity === 'critical'
+            ? randomInRange(1.6, 2.0)
+            : severity === 'high'
+              ? randomInRange(1.4, 1.6)
+              : severity === 'medium'
+                ? randomInRange(1.2, 1.4)
+                : randomInRange(1.1, 1.2);
+          const newIndex = baseIndex * multiplier;
 
-  // High: Sudden chemical price jump
-  anomalies.push(
-    generateAnomaly(
-      'price_spike',
-      'product-chemicals-1',
-      'high',
-      subDays(now, 4),
-      {
-        previous_price: 850.0,
-        current_price: 1360.0,
-        z_score: 3.8,
-        threshold: 2.0,
-        percentage_change: 60.0,
-      }
-    )
-  );
+          details = {
+            route,
+            previous_index: baseIndex,
+            current_index: newIndex,
+            percentage_change: (multiplier - 1) * 100,
+          };
+        }
+        break;
+
+      case 'fx_volatility':
+        productId = null; // FX is not product-specific
+        {
+          const pair = currencyPairs[randomInt(0, currencyPairs.length - 1)];
+          const baseRate = randomInRange(0.01, 10);
+          const volatility = severity === 'critical' || severity === 'high'
+            ? randomInRange(0.04, 0.08)
+            : severity === 'medium'
+              ? randomInRange(0.03, 0.04)
+              : randomInRange(0.02, 0.03);
+          const threshold = 0.025;
+          const percentageChange = volatility * 100;
+
+          details = {
+            currency_pair: pair,
+            volatility_score: volatility,
+            threshold,
+            percentage_change: percentageChange,
+            recent_range: `${(baseRate * (1 - volatility / 2)).toFixed(2)} - ${(baseRate * (1 + volatility / 2)).toFixed(2)}`,
+          };
+        }
+        break;
+    }
+
+    anomalies.push(generateAnomaly(type, productId, severity, detectedAt, details));
+  }
 
   return anomalies;
 }

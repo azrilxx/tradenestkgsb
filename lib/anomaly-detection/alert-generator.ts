@@ -258,7 +258,7 @@ export async function getAlertStatistics(): Promise<{
   resolved: number;
   bySeverity: Record<AnomalySeverity, number>;
   byType: Record<AnomalyType, number>;
-} | null> {
+}> {
   try {
     // Get all alerts with anomaly details
     const { data: alerts, error } = await supabase
@@ -316,7 +316,15 @@ export async function getAlertStatistics(): Promise<{
     return stats;
   } catch (error) {
     console.error('Error getting alert statistics:', error);
-    return null;
+    // Return empty stats if database access fails
+    return {
+      total: 0,
+      new: 0,
+      viewed: 0,
+      resolved: 0,
+      bySeverity: { low: 0, medium: 0, high: 0, critical: 0 },
+      byType: { price_spike: 0, tariff_change: 0, freight_surge: 0, fx_volatility: 0 },
+    };
   }
 }
 

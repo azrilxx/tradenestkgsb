@@ -1,9 +1,11 @@
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 import { MOCK_PRODUCTS } from './products';
 import { FMM_COMPANIES } from './fmm-companies';
 import { FMM_COMPANIES_SCRAPED } from './fmm-companies-scraped';
 import { MALAYSIA_PORTS } from './malaysia-ports';
 import { generateMalaysiaShipments } from './malaysia-shipments';
+import { MOCK_CUSTOM_RULES, generateRuleExecutions } from './custom-rules';
+import { generateSubscriptions, generateIntelligenceUsage } from './subscriptions';
 import {
   generatePriceData,
   generateTariffData,
@@ -15,6 +17,18 @@ import {
 } from './generators';
 import { subDays } from 'date-fns';
 
+// Create a Supabase client with service role key to bypass RLS
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const supabase = serviceRoleKey && supabaseUrl
+  ? createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } })
+  : null;
+
+if (!supabase) {
+  throw new Error('Missing Supabase configuration for seeding');
+}
+
 /**
  * Main seeding function - populates database with mock data
  */
@@ -22,11 +36,33 @@ export async function seedDatabase() {
   console.log('🌱 Starting database seeding...');
 
   try {
+    // Step 0: Fix anomalies schema (add description, make product_id nullable)
+    console.log('🔧 Checking and fixing anomalies table schema...');
+    try {
+      // Check if description column exists
+      const { data: checkDesc, error: checkError } = await supabase
+        .from('anomalies')
+        .select('description')
+        .limit(1);
+
+      if (checkError && checkError.message.includes('column "description" does not exist')) {
+        console.log('  Adding description column...');
+        // We can't run DDL directly, but we can log the SQL
+        console.log('  ⚠️  Please run this SQL in Supabase SQL Editor:');
+        console.log('  ALTER TABLE anomalies ADD COLUMN IF NOT EXISTS description TEXT;');
+        console.log('  ALTER TABLE anomalies ALTER COLUMN product_id DROP NOT NULL;');
+      } else {
+        console.log('  ✅ Schema looks good or will be handled by constraints');
+      }
+    } catch (schemaError) {
+      console.log('  ⚠️  Schema check failed, will attempt seeding anyway');
+    }
+
     // Step 1: Insert Products
     console.log('📦 Inserting products...');
     const { data: products, error: productsError } = await supabase
       .from('products')
-      .insert(MOCK_PRODUCTS)
+      .upsert(MOCK_PRODUCTS, { onConflict: 'hs_code', ignoreDuplicates: false })
       .select();
 
     if (productsError) {
@@ -69,7 +105,7 @@ export async function seedDatabase() {
     console.log('🚢 Inserting Malaysia ports...');
     const { data: ports, error: portsError } = await supabase
       .from('ports')
-      .insert(MALAYSIA_PORTS)
+      .upsert(MALAYSIA_PORTS, { onConflict: 'code', ignoreDuplicates: false })
       .select();
 
     if (portsError) {
@@ -211,14 +247,15 @@ export async function seedDatabase() {
 
     // Step 7: Generate Malaysia Shipments
     console.log('📦 Generating Malaysia shipment data...');
+    let shipments: any[] = [];
     if (companies && ports && products) {
-      const shipments = generateMalaysiaShipments(
+      shipments = generateMalaysiaShipments(
         companies,
         ports,
         products,
         startDate,
         endDate,
-        800 // Generate 800 shipments
+        2000 // Generate 2000 shipments (increased from 800)
       );
 
       // Insert shipments in batches
@@ -235,36 +272,46 @@ export async function seedDatabase() {
 
     // Step 8: Insert Anomalies
     console.log('🚨 Generating anomalies...');
-    const anomalies = generateDemoAnomalies();
+    const anomalies = generateDemoAnomalies(100);
+    console.log(`✅ Generated ${anomalies.length} anomalies`);
 
     // Map product placeholders to real IDs
     const anomaliesWithRealIds = anomalies.map((anomaly) => {
-      if (anomaly.product_id && products) {
-        // Map placeholder to real product ID
-        const categoryMatch = anomaly.product_id.includes('electronics')
-          ? 'Electronics'
-          : anomaly.product_id.includes('textiles')
-            ? 'Textiles'
-            : anomaly.product_id.includes('palm-oil')
-              ? 'Agriculture'
-              : anomaly.product_id.includes('automotive')
-                ? 'Automotive'
-                : anomaly.product_id.includes('furniture')
-                  ? 'Furniture'
-                  : anomaly.product_id.includes('rubber')
-                    ? 'Rubber'
-                    : anomaly.product_id.includes('chemicals')
-                      ? 'Chemicals'
-                      : null;
+      if (anomaly.product_id && products && products.length > 0) {
+        // Extract category hint from the fake product_id
+        const fakeId = anomaly.product_id;
 
-        const matchedProduct = products.find((p) => p.category === categoryMatch);
+        // Map category hints to actual product categories
+        let categoryMatch: string | null = null;
+        if (fakeId.includes('electronics')) categoryMatch = 'Electronics';
+        else if (fakeId.includes('textiles')) categoryMatch = 'Textiles';
+        else if (fakeId.includes('agriculture') || fakeId.includes('palm-oil')) categoryMatch = 'Agriculture';
+        else if (fakeId.includes('automotive')) categoryMatch = 'Automotive';
+        else if (fakeId.includes('furniture')) categoryMatch = 'Furniture';
+        else if (fakeId.includes('rubber')) categoryMatch = 'Rubber';
+        else if (fakeId.includes('chemicals')) categoryMatch = 'Chemicals';
+        else if (fakeId.includes('petroleum')) categoryMatch = 'Petroleum';
+        else if (fakeId.includes('machinery')) categoryMatch = 'Machinery';
+        else if (fakeId.includes('food')) categoryMatch = 'Food';
+
+        // Find a matching product
+        const matchedProduct = categoryMatch
+          ? products.find((p) => p.category === categoryMatch)
+          : null;
+
+        // If no match, pick a random product
+        const productToUse = matchedProduct || products[Math.floor(Math.random() * products.length)];
+
         return {
           ...anomaly,
-          product_id: matchedProduct?.id || null,
+          product_id: productToUse?.id || null,
         };
       }
       return { ...anomaly, product_id: null };
     });
+
+    console.log(`📤 Inserting ${anomaliesWithRealIds.length} anomalies into database...`);
+    console.log(`Sample anomaly:`, JSON.stringify(anomaliesWithRealIds[0], null, 2));
 
     const { data: insertedAnomalies, error: anomalyError } = await supabase
       .from('anomalies')
@@ -272,7 +319,17 @@ export async function seedDatabase() {
       .select();
 
     if (anomalyError) {
-      console.error('Error inserting anomalies:', anomalyError);
+      console.error('❌ Error inserting anomalies:', JSON.stringify(anomalyError, null, 2));
+
+      // Check if it's a missing column error
+      if (anomalyError.message && anomalyError.message.includes("details' column")) {
+        console.error('\n❌ ISSUE: The anomalies table is missing the "details" column.');
+        console.error('📝 SOLUTION: Run this SQL in your Supabase SQL Editor:');
+        console.error('   ALTER TABLE anomalies ADD COLUMN IF NOT EXISTS details JSONB NOT NULL DEFAULT \'{}\';');
+        console.error('   Then run the seed again.\n');
+      }
+
+      throw new Error(`Failed to insert anomalies: ${JSON.stringify(anomalyError)}`);
     } else {
       console.log(`✅ Inserted ${insertedAnomalies?.length} anomalies`);
     }
@@ -293,18 +350,112 @@ export async function seedDatabase() {
       }
     }
 
+    // Step 9: Insert Custom Rules
+    console.log('📋 Inserting custom rules...');
+
+    if (!MOCK_CUSTOM_RULES || MOCK_CUSTOM_RULES.length === 0) {
+      console.log('⚠️ No custom rules to insert');
+    } else {
+      // Insert in smaller batches to avoid payload limits
+      const batchSize = 5;
+      let totalInserted = 0;
+
+      for (let i = 0; i < MOCK_CUSTOM_RULES.length; i += batchSize) {
+        const batch = MOCK_CUSTOM_RULES.slice(i, i + batchSize);
+        const { data: batchRules, error: batchError } = await supabase
+          .from('custom_rules')
+          .insert(batch)
+          .select();
+
+        if (batchError) {
+          console.error(`Error inserting custom rules batch ${i / batchSize + 1}:`, batchError);
+        } else {
+          totalInserted += batchRules?.length || 0;
+        }
+      }
+
+      console.log(`✅ Inserted ${totalInserted} custom rules`);
+    }
+
+    // Get the inserted rules for next step
+    const { data: insertedRules } = await supabase
+      .from('custom_rules')
+      .select('id');
+
+    // Step 10: Insert Rule Executions
+    console.log('⚙️ Generating rule executions...');
+    let insertedExecutions = 0;
+    if (insertedRules && insertedRules.length > 0) {
+      const ruleIds = insertedRules.map(r => r.id);
+      const executions = generateRuleExecutions(ruleIds, 30);
+
+      const { error: executionsError } = await supabase
+        .from('rule_executions')
+        .insert(executions);
+
+      if (executionsError) {
+        console.error('Error inserting rule executions:', executionsError);
+      } else {
+        insertedExecutions = executions.length;
+        console.log(`✅ Inserted ${insertedExecutions} rule executions`);
+      }
+    }
+
+    // Step 11: Insert User Subscriptions
+    console.log('💳 Inserting user subscriptions...');
+    const subscriptions = generateSubscriptions();
+    const { data: insertedSubscriptions, error: subscriptionError } = await supabase
+      .from('user_subscriptions')
+      .insert(subscriptions)
+      .select();
+
+    if (subscriptionError) {
+      console.error('Error inserting subscriptions:', subscriptionError);
+    } else {
+      console.log(`✅ Inserted ${insertedSubscriptions?.length} user subscriptions`);
+    }
+
+    // Step 12: Insert Intelligence Usage Data
+    console.log('📊 Generating intelligence usage data...');
+    let insertedUsage = 0;
+    if (insertedAnomalies && insertedAnomalies.length > 0) {
+      // Get alert IDs that were created from anomalies
+      const { data: alertsData } = await supabase
+        .from('alerts')
+        .select('id')
+        .limit(insertedAnomalies.length);
+
+      const alertIds = alertsData ? alertsData.map(a => a.id) : [];
+      const usage = generateIntelligenceUsage(alertIds);
+
+      const { error: usageError } = await supabase
+        .from('intelligence_analysis_usage')
+        .insert(usage);
+
+      if (usageError) {
+        console.error('Error inserting intelligence usage:', usageError);
+      } else {
+        insertedUsage = usage.length;
+        console.log(`✅ Inserted ${insertedUsage} intelligence usage records`);
+      }
+    }
+
     console.log('\n🎉 Database seeding completed successfully!');
     console.log('\n📊 Summary:');
     console.log(`   - Products: ${products?.length || 0}`);
     console.log(`   - Companies: ${companies?.length || 0}`);
     console.log(`   - Ports: ${ports?.length || 0}`);
-    console.log(`   - Shipments: 800`);
+    console.log(`   - Shipments: ${shipments?.length || 0}`);
     console.log(`   - Price records: ${allPriceData.length}`);
     console.log(`   - Tariff records: ${allTariffData.length}`);
     console.log(`   - FX rates: ${allFxData.length}`);
     console.log(`   - Freight indexes: ${allFreightData.length}`);
     console.log(`   - Anomalies: ${insertedAnomalies?.length || 0}`);
     console.log(`   - Alerts: ${insertedAnomalies?.length || 0}`);
+    console.log(`   - Custom rules: ${insertedRules?.length || 0}`);
+    console.log(`   - Rule executions: ${insertedExecutions}`);
+    console.log(`   - Subscriptions: ${insertedSubscriptions?.length || 0}`);
+    console.log(`   - Intelligence usage: ${insertedUsage}`);
 
     return {
       success: true,
@@ -312,20 +463,29 @@ export async function seedDatabase() {
         products: products?.length || 0,
         companies: companies?.length || 0,
         ports: ports?.length || 0,
-        shipments: 800,
+        shipments: shipments?.length || 0,
         prices: allPriceData.length,
         tariffs: allTariffData.length,
         fxRates: allFxData.length,
         freight: allFreightData.length,
         anomalies: insertedAnomalies?.length || 0,
         alerts: insertedAnomalies?.length || 0,
+        customRules: insertedRules?.length || 0,
+        ruleExecutions: insertedExecutions,
+        subscriptions: insertedSubscriptions?.length || 0,
+        intelligenceUsage: insertedUsage,
       },
     };
   } catch (error) {
     console.error('❌ Seeding failed:', error);
     return {
       success: false,
-      error,
+      error: {
+        message: error instanceof Error ? error.message : String(error),
+        code: (error as any)?.code || 'UNKNOWN',
+        details: (error as any)?.details || null,
+        hint: (error as any)?.hint || null,
+      },
     };
   }
 }
@@ -336,25 +496,35 @@ export async function seedDatabase() {
 export async function clearDatabase() {
   console.log('🧹 Clearing database...');
 
+  // Clear tables in proper order to avoid foreign key violations
   const tables = [
+    'intelligence_analysis_usage',
+    'rule_executions',
     'alerts',
     'anomalies',
+    'user_subscriptions',
+    'custom_rules',
     'shipments',
-    'companies',
-    'ports',
-    'freight_index',
-    'fx_rates',
     'price_data',
     'tariff_data',
+    'freight_index',
+    'fx_rates',
+    'companies',
+    'ports',
     'products',
   ];
 
   for (const table of tables) {
-    const { error } = await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    if (error) {
-      console.error(`Error clearing ${table}:`, error);
-    } else {
-      console.log(`✅ Cleared ${table}`);
+    try {
+      // First, try to delete all rows (some tables don't have created_at)
+      const { error } = await supabase.from(table).delete().gte('id', '00000000-0000-0000-0000-000000000000');
+      if (error) {
+        console.error(`Error clearing ${table}:`, error.message);
+      } else {
+        console.log(`✅ Cleared ${table}`);
+      }
+    } catch (err) {
+      console.error(`Failed to clear ${table}:`, err);
     }
   }
 
