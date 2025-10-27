@@ -20,7 +20,8 @@ import {
   Power,
   LogOut,
   Users2,
-  FileCheck
+  FileCheck,
+  Building2
 } from 'lucide-react';
 import { getCurrentUser, signOut } from '@/lib/supabase/auth-helpers';
 
@@ -41,6 +42,12 @@ const navigation = [
       { name: 'Trade Intelligence', href: '/dashboard/trade-intelligence', icon: Search, shortcut: 'T' },
       { name: 'Scenarios', href: '/dashboard/scenarios', icon: TrendingUp, shortcut: 'S' },
       { name: 'Correlation', href: '/dashboard/correlation', icon: BarChart3, shortcut: 'R', badge: 'NEW' },
+    ]
+  },
+  {
+    group: 'Companies',
+    items: [
+      { name: 'Company Profiles', href: '/companies', icon: Building2, shortcut: 'M' },
     ]
   },
   {

@@ -532,7 +532,14 @@ export default function TradeIntelligencePage() {
                         </td>
                         <td className="py-3 px-4">
                           <div className="text-sm">
-                            <div className="font-medium">{shipment.company_name}</div>
+                            <div className="font-medium">
+                              <a
+                                href={`/companies/${shipment.company_id}`}
+                                className="text-blue-600 hover:text-blue-800 hover:underline"
+                              >
+                                {shipment.company_name}
+                              </a>
+                            </div>
                             <div className="text-gray-500 text-xs">{shipment.company_country}</div>
                           </div>
                         </td>
