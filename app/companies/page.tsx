@@ -64,10 +64,10 @@ export default function CompaniesPage() {
           // Fallback: extract from shipments
           const response = await fetch('/api/trade/drilldown?limit=100');
           const result = await response.json();
-          
+
           if (result.success && result.data?.shipments) {
             const companyMap = new Map<string, Company>();
-            
+
             result.data.shipments.forEach((shipment: any) => {
               if (!companyMap.has(shipment.company_id)) {
                 companyMap.set(shipment.company_id, {
@@ -80,12 +80,12 @@ export default function CompaniesPage() {
                   total_value: 0,
                 });
               }
-              
+
               const company = companyMap.get(shipment.company_id)!;
               company.total_shipments += 1;
               company.total_value += shipment.total_value || 0;
             });
-            
+
             setCompanies(Array.from(companyMap.values()));
           }
         }
@@ -95,19 +95,19 @@ export default function CompaniesPage() {
         setLoading(false);
       }
     }
-    
+
     fetchCompanies();
   }, []);
 
   const filteredCompanies = companies.filter(company => {
-    const matchesSearch = !searchQuery || 
+    const matchesSearch = !searchQuery ||
       company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       company.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
       company.sector.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesType = selectedType === 'all' || company.type === selectedType;
     const matchesSector = selectedSector === 'all' || company.sector === selectedSector;
-    
+
     return matchesSearch && matchesType && matchesSector;
   });
 
@@ -169,7 +169,7 @@ export default function CompaniesPage() {
                 className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            
+
             {/* Filters */}
             <div className="flex gap-4 flex-wrap">
               <div className="flex items-center gap-2">
@@ -186,7 +186,7 @@ export default function CompaniesPage() {
                   <option value="both">Both</option>
                 </select>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium text-gray-700">Sector:</label>
                 <select
@@ -200,7 +200,7 @@ export default function CompaniesPage() {
                   ))}
                 </select>
               </div>
-              
+
               {(selectedType !== 'all' || selectedSector !== 'all') && (
                 <Button
                   variant="outline"
