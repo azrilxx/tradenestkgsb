@@ -29,11 +29,11 @@ export default function CompaniesPage() {
         // For now, we'll get companies from the database
         const response = await fetch('/api/trade/drilldown?limit=100');
         const result = await response.json();
-        
+
         if (result.success && result.data?.shipments) {
           // Extract unique companies from shipments
           const companyMap = new Map<string, Company>();
-          
+
           result.data.shipments.forEach((shipment: any) => {
             if (!companyMap.has(shipment.company_id)) {
               companyMap.set(shipment.company_id, {
@@ -46,12 +46,12 @@ export default function CompaniesPage() {
                 total_value: 0,
               });
             }
-            
+
             const company = companyMap.get(shipment.company_id)!;
             company.total_shipments += 1;
             company.total_value += shipment.total_value || 0;
           });
-          
+
           setCompanies(Array.from(companyMap.values()));
         }
       } catch (err) {
@@ -60,7 +60,7 @@ export default function CompaniesPage() {
         setLoading(false);
       }
     }
-    
+
     fetchCompanies();
   }, []);
 
@@ -73,7 +73,7 @@ export default function CompaniesPage() {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'RM',
+      currency: 'MYR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);
@@ -211,8 +211,8 @@ export default function CompaniesPage() {
                       </div>
                     </div>
                   </div>
-                  <Button 
-                    className="w-full mt-4" 
+                  <Button
+                    className="w-full mt-4"
                     variant="outline"
                     onClick={(e) => {
                       e.stopPropagation();

@@ -82,7 +82,7 @@ export default function CompanyProfilePage() {
   const params = useParams();
   const companyId = params.id as string;
   const router = useRouter();
-  
+
   const [company, setCompany] = useState<CompanyProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -137,7 +137,7 @@ export default function CompanyProfilePage() {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'RM',
+      currency: 'MYR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);
