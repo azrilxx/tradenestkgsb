@@ -260,14 +260,19 @@ export async function seedDatabase() {
 
       // Insert shipments in batches
       const shipmentBatchSize = 100;
+      let totalInserted = 0;
       for (let i = 0; i < shipments.length; i += shipmentBatchSize) {
         const batch = shipments.slice(i, i + shipmentBatchSize);
-        const { error } = await supabase.from('shipments').insert(batch);
+        const { data, error } = await supabase.from('shipments').insert(batch).select();
         if (error) {
-          console.error('Error inserting shipment batch:', error);
+          console.error(`❌ Error inserting shipment batch ${i / shipmentBatchSize + 1}:`, error);
+          console.error('Sample batch data:', JSON.stringify(batch[0], null, 2));
+        } else {
+          totalInserted += data?.length || 0;
+          console.log(`  ✓ Batch ${i / shipmentBatchSize + 1}: Inserted ${data?.length || 0} shipments`);
         }
       }
-      console.log(`✅ Inserted ${shipments.length} shipment records`);
+      console.log(`✅ Inserted ${totalInserted} of ${shipments.length} shipment records`);
     }
 
     // Step 8: Insert Anomalies
