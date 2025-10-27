@@ -104,11 +104,41 @@ export async function GET(
       .eq('company_id', companyId)
       .order('shipment_date', { ascending: false });
 
-    if (shipmentsError || !shipments) {
+    if (shipmentsError) {
+      console.error('Shipment fetch error:', shipmentsError);
       return NextResponse.json(
         { error: 'Failed to fetch shipments' },
         { status: 500 }
       );
+    }
+
+    // If no shipments, return empty profile but don't error
+    if (!shipments || shipments.length === 0) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          id: company.id,
+          name: company.name,
+          country: company.country,
+          type: company.type,
+          sector: company.sector,
+          stats: {
+            total_shipments: 0,
+            total_value: 0,
+            unique_products: 0,
+            unique_routes: 0,
+            first_shipment_date: null,
+            last_shipment_date: null,
+          },
+          top_products: [],
+          top_suppliers: [],
+          top_customers: [],
+          top_carriers: [],
+          shipping_activity: [],
+          activity_feed: [],
+          country_distribution: [],
+        },
+      });
     }
 
     // Calculate top products
