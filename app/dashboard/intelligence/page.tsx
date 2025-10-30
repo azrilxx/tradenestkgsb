@@ -13,7 +13,7 @@ import { ComparisonPanel } from '@/components/intelligence/comparison-panel';
 import { supabase } from '@/lib/supabase/client';
 import { getUserSubscription, checkUsageLimit } from '@/lib/subscription/tier-checker';
 import { generateAndDownloadIntelligenceReport } from '@/lib/pdf/evidence-generator';
-import { Download, FileText, Database, Zap, Brain, GitCompare, Layers } from 'lucide-react';
+import { Download, FileText, Database, Zap, Brain, GitCompare, Layers, X } from 'lucide-react';
 
 type ViewMode = 'list' | 'graph' | 'timeline' | 'matrix';
 
@@ -400,7 +400,7 @@ export default function IntelligenceDashboard() {
   };
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-4 md:space-y-6 ml-0 md:ml-64">
+    <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Interconnected Intelligence</h1>

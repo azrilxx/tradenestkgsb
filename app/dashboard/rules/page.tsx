@@ -55,7 +55,7 @@ export default function RulesPage() {
     try {
       const url = editingRule ? '/api/rules' : '/api/rules';
       const method = editingRule ? 'PUT' : 'POST';
-      
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -90,7 +90,7 @@ export default function RulesPage() {
 
       const data = await response.json();
       setTestResults(data);
-      
+
       if (data.success) {
         alert(`Test completed! Found ${data.matches.length} matches in ${data.total_products_evaluated} products.`);
       } else {
@@ -212,7 +212,7 @@ export default function RulesPage() {
                 <div className="text-sm text-gray-600">Execution Time</div>
               </div>
             </div>
-            
+
             {testResults.sample_matches && testResults.sample_matches.length > 0 && (
               <div>
                 <h4 className="font-medium mb-2">Sample Matches:</h4>
@@ -240,7 +240,7 @@ export default function RulesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Custom Rules</h1>
         <Button onClick={() => setShowBuilder(true)}>
@@ -305,9 +305,9 @@ export default function RulesPage() {
                       {rule.active ? 'Active' : 'Inactive'}
                     </Badge>
                   </div>
-                  
+
                   <p className="text-gray-600 mb-3">{rule.description}</p>
-                  
+
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
                       <div className="font-medium text-gray-500">Executions</div>
@@ -326,7 +326,7 @@ export default function RulesPage() {
                     <div>
                       <div className="font-medium text-gray-500">Last Execution</div>
                       <div className="text-sm">
-                        {rule.performance.last_execution 
+                        {rule.performance.last_execution
                           ? new Date(rule.performance.last_execution).toLocaleDateString()
                           : 'Never'
                         }
@@ -334,7 +334,7 @@ export default function RulesPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex space-x-2 ml-4">
                   <Button
                     onClick={() => handleEditRule(rule)}

@@ -32,7 +32,6 @@ export async function GET(request: Request) {
         id,
         status,
         created_at,
-        resolved_at,
         anomalies (
           id,
           type,
@@ -115,9 +114,7 @@ export async function PATCH(request: Request) {
     }
 
     const updateData: any = { status };
-    if (status === 'resolved') {
-      updateData.resolved_at = new Date().toISOString();
-    }
+    // Note: resolved_at column doesn't exist in the database schema yet
 
     const { error } = await supabase
       .from('alerts')

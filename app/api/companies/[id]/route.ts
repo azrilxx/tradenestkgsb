@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
 
 interface CompanyProfile {
   id: string;
@@ -65,10 +72,14 @@ interface CompanyProfile {
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const companyId = params.id;
+    const { id } = await params;
+    const companyId = id;
+
+    // Create Supabase client for server-side use
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     // Fetch company basic info
     const { data: company, error: companyError } = await supabase
@@ -88,7 +99,12 @@ export async function GET(
     const { data: statsData, error: statsError } = await supabase
       .rpc('get_company_stats', { company_uuid: companyId });
 
-    const stats = {
+    if (statsError) {
+      console.error('RPC get_company_stats error:', statsError);
+    }
+
+    // Calculate stats from shipments if RPC fails or returns empty
+    let stats = {
       total_shipments: statsData?.[0]?.total_shipments || 0,
       total_value: parseFloat(statsData?.[0]?.total_value || '0'),
       unique_products: statsData?.[0]?.unique_products || 0,
@@ -98,16 +114,80 @@ export async function GET(
     };
 
     // Get all shipment details for this company
-    const { data: shipments, error: shipmentsError } = await supabase
+    // Try to query the view first, fallback to direct table query if view fails
+    let { data: shipments, error: shipmentsError } = await supabase
       .from('shipment_details')
       .select('*')
       .eq('company_id', companyId)
       .order('shipment_date', { ascending: false });
 
+    // If view query fails, try querying the underlying tables directly
     if (shipmentsError) {
-      console.error('Shipment fetch error:', shipmentsError);
+      console.error('Shipment view query error:', shipmentsError);
+      console.log('Falling back to direct shipments table query...');
+
+      // Fallback: Query shipments table directly with joins
+      const { data: directShipments, error: directError } = await supabase
+        .from('shipments')
+        .select(`
+          id,
+          shipment_date,
+          arrival_date,
+          vessel_name,
+          container_count,
+          weight_kg,
+          volume_m3,
+          unit_price,
+          total_value,
+          currency,
+          freight_cost,
+          invoice_number,
+          bl_number,
+          hs_code,
+          products!inner(hs_code, description, category),
+          companies!inner(id, name, country, type, sector)
+        `)
+        .eq('company_id', companyId)
+        .order('shipment_date', { ascending: false });
+
+      if (directError) {
+        console.error('Direct shipments query error:', directError);
+        return NextResponse.json(
+          {
+            error: 'Failed to fetch shipments',
+            details: directError.message,
+            hint: 'Check if shipments table has data and RLS policies are configured'
+          },
+          { status: 500 }
+        );
+      }
+
+      // Transform direct query results to match shipment_details format
+      shipments = directShipments?.map((s: any) => ({
+        ...s,
+        company_id: s.companies?.id,
+        company_name: s.companies?.name,
+        company_country: s.companies?.country,
+        company_type: s.companies?.type,
+        company_sector: s.companies?.sector,
+        product_id: s.products?.id || s.product_id,
+        hs_code: s.products?.hs_code || s.hs_code,
+        product_description: s.products?.description,
+        product_category: s.products?.category,
+        origin_country: s.origin_country || 'Unknown',
+        destination_country: s.destination_country || 'Unknown',
+      })) || [];
+
+      shipmentsError = null;
+    }
+
+    if (shipmentsError) {
+      console.error('Final shipment fetch error:', shipmentsError);
       return NextResponse.json(
-        { error: 'Failed to fetch shipments' },
+        {
+          error: 'Failed to fetch shipments',
+          details: shipmentsError.message
+        },
         { status: 500 }
       );
     }
@@ -139,6 +219,32 @@ export async function GET(
           country_distribution: [],
         },
       });
+    }
+
+    // If stats from RPC are all zeros but we have shipments, recalculate stats
+    if (stats.total_shipments === 0 && shipments.length > 0) {
+      console.log('RPC returned zero stats, recalculating from shipments...');
+
+      const uniqueProducts = new Set(shipments.map((s: any) => s.product_id));
+      const uniqueRoutes = new Set(
+        shipments.map((s: any) => `${s.origin_port_id || 'null'}-${s.destination_port_id || 'null'}`)
+      );
+
+      const shipmentDates = shipments
+        .map((s: any) => s.shipment_date)
+        .filter((d: any) => d)
+        .sort();
+
+      stats = {
+        total_shipments: shipments.length,
+        total_value: shipments.reduce((sum: number, s: any) => sum + (parseFloat(s.total_value) || 0), 0),
+        unique_products: uniqueProducts.size,
+        unique_routes: uniqueRoutes.size,
+        first_shipment_date: shipmentDates[0] || null,
+        last_shipment_date: shipmentDates[shipmentDates.length - 1] || null,
+      };
+
+      console.log('Recalculated stats:', stats);
     }
 
     // Calculate top products

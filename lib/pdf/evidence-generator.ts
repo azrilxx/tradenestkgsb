@@ -1,6 +1,8 @@
 import jsPDF from 'jspdf';
 import { format } from 'date-fns';
 import { AnomalyType, AnomalySeverity } from '@/types/database';
+import { generateLineChartSVG, generateRangeChartSVG, generateChartDescription } from './chart-generator';
+import { calculateQScore, validateAndEnhanceReport } from '@/lib/quality/q-score-validator';
 
 interface EvidenceData {
   alert: {
@@ -66,8 +68,17 @@ export class EvidenceGenerator {
     // Anomaly Details
     this.addAnomalyDetails(data.anomaly);
 
+    // ✅ PREMIUM: Add Historical Chart for FX Volatility
+    if (data.anomaly.type === 'fx_volatility' && data.anomaly.details.historical_data) {
+      this.addHistoricalChart(data.anomaly.details);
+    }
+
     // Evidence Summary
     this.addEvidenceSummary(data.anomaly);
+
+    // ✅ PREMIUM: Add Q-Score validation badge
+    const validation = calculateQScore(data);
+    this.addQualityScore(validation);
 
     // Recommendations
     this.addRecommendations(data.anomaly.type, data.anomaly.severity);
@@ -208,10 +219,28 @@ export class EvidenceGenerator {
 
       case 'fx_volatility':
         this.addDetailLine('Currency Pair', details.currency_pair || 'N/A');
+
+        // Show warning if data is estimated
+        if (details.warning) {
+          this.doc.setTextColor(234, 88, 12); // Orange for warnings
+          const warningText = this.doc.splitTextToSize(
+            `⚠️ ${details.warning}`,
+            this.pageWidth - this.margin * 2 - 60
+          );
+          this.doc.text(warningText, this.margin + 5, this.yPosition);
+          this.yPosition += 6 * warningText.length;
+          this.doc.setTextColor(17, 24, 39); // Reset to black
+        }
+
         this.addDetailLine('Current Rate', this.formatNumber(details.current_rate));
         this.addDetailLine('Average Rate', this.formatNumber(details.average_rate));
         this.addDetailLine('Volatility', `${this.formatNumber(details.volatility)}%`);
         this.addDetailLine('Rate Range', details.rate_range || 'N/A');
+        this.addDetailLine('Trend', (details.trend || 'stable').charAt(0).toUpperCase() + (details.trend || 'stable').slice(1));
+
+        if (details.sample_size) {
+          this.addDetailLine('Sample Size', `${details.sample_size} days`);
+        }
         break;
     }
 
@@ -290,6 +319,108 @@ export class EvidenceGenerator {
     );
   }
 
+  // ✅ PREMIUM: Add historical chart section
+  private addHistoricalChart(details: Record<string, any>) {
+    if (!details.historical_data || details.historical_data.length === 0) {
+      return;
+    }
+
+    this.yPosition += 10;
+    this.doc.setFontSize(14);
+    this.doc.setTextColor(55, 65, 81);
+    this.doc.text('Historical Context', this.margin, this.yPosition);
+    this.yPosition += 8;
+
+    // Generate chart description since jsPDF doesn't support SVG directly
+    const chartData = {
+      labels: details.historical_data.map((d: any) => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+      values: details.historical_data.map((d: any) => parseFloat(d.rate)),
+      datasetLabel: details.currency_pair || 'Rate',
+    };
+
+    const chartDescription = generateChartDescription(chartData, 'line');
+
+    this.doc.setFontSize(10);
+    this.doc.setTextColor(75, 85, 99);
+    const lines = this.doc.splitTextToSize(chartDescription, this.pageWidth - this.margin * 2 - 10);
+    this.doc.text(lines, this.margin + 5, this.yPosition);
+    this.yPosition += 6 * lines.length;
+
+    // Add key statistics
+    this.yPosition += 5;
+    this.doc.setFontSize(12);
+    this.doc.setTextColor(55, 65, 81);
+    this.doc.text('Key Statistics:', this.margin, this.yPosition);
+    this.yPosition += 6;
+
+    this.doc.setFontSize(10);
+    this.addDetailLine('7-Day Average', details.average_rate?.toFixed(6) || 'N/A');
+    this.addDetailLine('Trend', details.trend || 'N/A');
+    this.addDetailLine('Percentage Change', details.percentage_change ? `${details.percentage_change}%` : 'N/A');
+    this.addDetailLine('Volatility', details.volatility ? `${details.volatility}%` : 'N/A');
+    this.addDetailLine('Sample Size', details.sample_size ? `${details.sample_size} days` : 'N/A');
+
+    this.yPosition += 5;
+  }
+
+  // ✅ PREMIUM: Add quality score badge
+  private addQualityScore(validation: any) {
+    if (!validation || !validation.qScore) {
+      return;
+    }
+
+    this.yPosition += 5;
+
+    // Quality Score Box
+    this.doc.setFontSize(14);
+    this.doc.setTextColor(55, 65, 81);
+    this.doc.text('Quality Validation', this.margin, this.yPosition);
+    this.yPosition += 8;
+
+    // Q-Score with color-coded badge
+    const qScore = validation.qScore;
+    let badgeColor: { r: number; g: number; b: number };
+
+    if (qScore >= 90) {
+      badgeColor = { r: 16, g: 185, b: 129 }; // Green-500
+    } else if (qScore >= 85) {
+      badgeColor = { r: 59, g: 130, b: 246 }; // Blue-500
+    } else if (qScore >= 75) {
+      badgeColor = { r: 245, g: 158, b: 11 }; // Amber-500
+    } else {
+      badgeColor = { r: 239, g: 68, b: 68 }; // Red-500
+    }
+
+    this.doc.setFillColor(badgeColor.r, badgeColor.g, badgeColor.b);
+    this.doc.roundedRect(this.margin + 5, this.yPosition, 60, 8, 2, 2, 'F');
+
+    this.doc.setFontSize(11);
+    this.doc.setTextColor(255, 255, 255);
+    this.doc.text(`Q-Score: ${qScore}/100`, this.margin + 35, this.yPosition + 5.5, { align: 'center' });
+
+    this.yPosition += 10;
+
+    // Show breakdown
+    if (validation.breakdown) {
+      this.doc.setFontSize(10);
+      this.doc.setTextColor(107, 114, 128);
+      this.doc.text('Quality Breakdown:', this.margin + 5, this.yPosition);
+      this.yPosition += 6;
+
+      this.doc.setFontSize(9);
+      const breakdown = validation.breakdown;
+      this.doc.text(`• Data Quality: ${breakdown.dataQuality.toFixed(0)}/100`, this.margin + 10, this.yPosition);
+      this.yPosition += 5;
+      this.doc.text(`• Statistical Rigor: ${breakdown.statisticalRigor.toFixed(0)}/100`, this.margin + 10, this.yPosition);
+      this.yPosition += 5;
+      this.doc.text(`• AI Enhancement: ${breakdown.aiEnhancement.toFixed(0)}/100`, this.margin + 10, this.yPosition);
+      this.yPosition += 5;
+      this.doc.text(`• Visual Presentation: ${breakdown.visualPresentation.toFixed(0)}/100`, this.margin + 10, this.yPosition);
+
+      this.yPosition += 5;
+    }
+  }
+
   private getTypeLabel(type: AnomalyType): string {
     const labels: Record<AnomalyType, string> = {
       price_spike: 'Price Spike Alert',
@@ -324,7 +455,17 @@ export class EvidenceGenerator {
         return `Freight costs on the ${details.route} route have surged by ${this.formatNumber(details.percentage_change)}%. The freight index increased from ${this.formatNumber(details.previous_index || details.average_index)} to ${this.formatNumber(details.current_index)}, indicating significant market pressure on this shipping route.`;
 
       case 'fx_volatility':
-        return `High volatility detected in ${details.currency_pair} exchange rate. Current volatility of ${this.formatNumber(details.volatility)}% exceeds normal thresholds. The rate has fluctuated within a range of ${details.rate_range}, posing currency risk for transactions.`;
+        const trendInfo = details.trend === 'strengthening' ? 'trending upward'
+          : details.trend === 'weakening' ? 'trending downward'
+            : 'relatively stable';
+        const dataQualityNote = details.warning
+          ? ` Note: ${details.warning.toLowerCase()} - values are estimated.`
+          : '';
+        const sampleNote = details.sample_size > 0
+          ? ` Analysis based on ${details.sample_size} days of historical data.`
+          : '';
+
+        return `High volatility detected in ${details.currency_pair} exchange rate. Current volatility of ${this.formatNumber(details.volatility)}% exceeds normal thresholds. The rate has fluctuated within a range of ${details.rate_range}, ${trendInfo}, posing currency risk for transactions.${dataQualityNote}${sampleNote}`;
 
       default:
         return 'An anomaly was detected that requires review.';
@@ -366,13 +507,23 @@ export class EvidenceGenerator {
     return recs[type];
   }
 
-  private formatCurrency(value: number | undefined): string {
-    if (value === undefined) return 'N/A';
+  private formatCurrency(value: number | string | undefined): string {
+    if (value === undefined || value === 'N/A') return 'N/A';
+    if (typeof value === 'string') {
+      const numValue = parseFloat(value);
+      if (isNaN(numValue)) return value;
+      return `MYR ${numValue.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
     return `MYR ${value.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
-  private formatNumber(value: number | undefined): string {
-    if (value === undefined) return 'N/A';
+  private formatNumber(value: number | string | undefined): string {
+    if (value === undefined || value === 'N/A') return 'N/A';
+    if (typeof value === 'string') {
+      const numValue = parseFloat(value);
+      if (isNaN(numValue)) return value; // Return original string if not numeric
+      return numValue.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
     return value.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 

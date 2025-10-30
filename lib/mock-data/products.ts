@@ -9,6 +9,8 @@ export const MOCK_PRODUCTS: Omit<Product, 'id' | 'created_at'>[] = [
   { hs_code: '8542.31', description: 'Electronic integrated circuits', category: 'Electronics' },
 
   // Textiles & Apparel
+  { hs_code: '5205.31', description: 'Cotton yarn, single', category: 'Textiles' },
+  { hs_code: '5407.20', description: 'Woven fabrics of synthetic filaments', category: 'Textiles' },
   { hs_code: '6109.10', description: 'T-shirts, cotton', category: 'Textiles' },
   { hs_code: '6203.42', description: 'Men\'s trousers, cotton', category: 'Textiles' },
   { hs_code: '6204.62', description: 'Women\'s trousers, cotton', category: 'Textiles' },
@@ -31,23 +33,32 @@ export const MOCK_PRODUCTS: Omit<Product, 'id' | 'created_at'>[] = [
 
   // Automotive
   { hs_code: '8703.23', description: 'Motor cars, spark-ignition 1500-3000cc', category: 'Automotive' },
+  { hs_code: '8704.31', description: 'Motor vehicles for transport of goods', category: 'Automotive' },
   { hs_code: '8708.29', description: 'Motor vehicle parts and accessories', category: 'Automotive' },
   { hs_code: '4011.10', description: 'New pneumatic tyres, cars', category: 'Automotive' },
 
   // Chemicals
+  { hs_code: '2804.50', description: 'Nitrogen', category: 'Chemicals' },
   { hs_code: '2902.11', description: 'Cyclohexane', category: 'Chemicals' },
   { hs_code: '3004.20', description: 'Antibiotics in dosage', category: 'Chemicals' },
   { hs_code: '3808.91', description: 'Insecticides', category: 'Chemicals' },
+  { hs_code: '3901.10', description: 'Polymers of ethylene, primary forms', category: 'Chemicals' },
 
   // Furniture
+  { hs_code: '9401.40', description: 'Seats with wooden frames', category: 'Furniture' },
   { hs_code: '9403.30', description: 'Wooden furniture for offices', category: 'Furniture' },
   { hs_code: '9403.60', description: 'Other wooden furniture', category: 'Furniture' },
+  { hs_code: '9404.30', description: 'Mattress supports', category: 'Furniture' },
+  { hs_code: '9405.20', description: 'Decorative glassware', category: 'Furniture' },
 
   // Food Products
+  { hs_code: '1001.10', description: 'Wheat, durum', category: 'Food' },
   { hs_code: '1006.30', description: 'Semi-milled or wholly milled rice', category: 'Food' },
   { hs_code: '0306.17', description: 'Frozen prawns and shrimps', category: 'Food' },
+  { hs_code: '1507.20', description: 'Soybean oil', category: 'Food' },
   { hs_code: '1701.99', description: 'Other cane or beet sugar', category: 'Food' },
   { hs_code: '1905.90', description: 'Bread, pastry, cakes, biscuits', category: 'Food' },
+  { hs_code: '2009.20', description: 'Orange juice', category: 'Food' },
 
   // Rubber Products
   { hs_code: '4001.21', description: 'Natural rubber smoked sheets', category: 'Rubber' },
@@ -63,6 +74,10 @@ export const MOCK_PRODUCTS: Omit<Product, 'id' | 'created_at'>[] = [
 
   // Metals
   { hs_code: '7208.10', description: 'Flat-rolled iron/steel, hot-rolled', category: 'Metals' },
+  { hs_code: '7208.90', description: 'Flat-rolled iron/steel, cold-rolled', category: 'Metals' },
+  { hs_code: '7214.20', description: 'Iron/steel bars and rods', category: 'Metals' },
+  { hs_code: '7306.50', description: 'Welded pipes and tubes', category: 'Metals' },
+  { hs_code: '7308.40', description: 'Iron/steel structures and parts', category: 'Metals' },
   { hs_code: '7601.10', description: 'Unwrought aluminum, not alloyed', category: 'Metals' },
 
   // Medical Equipment

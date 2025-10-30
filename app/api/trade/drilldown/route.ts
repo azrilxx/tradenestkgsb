@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
+import { DataSource, DataQuality } from '@/lib/data-sources/types';
 
 export async function GET(request: Request) {
   try {
+    // Track data source metadata
+    const metadata = {
+      dataSources: [] as string[],
+      warnings: [] as string[],
+      timestamp: new Date().toISOString()
+    };
     const { searchParams } = new URL(request.url);
 
     // Extract query parameters
@@ -23,7 +30,8 @@ export async function GET(request: Request) {
 
     // Apply filters
     if (hsCode) {
-      query = query.eq('hs_code', hsCode);
+      // Support partial HS code matches (e.g., "7208" matches "7208.10")
+      query = query.ilike('hs_code', `${hsCode}%`);
     }
 
     if (company) {
@@ -81,8 +89,20 @@ export async function GET(request: Request) {
       endDate,
     });
 
-    // Add anomaly flags to shipments
+    // Add anomaly flags to shipments with data quality scores
     const shipmentsWithAnomalies = await addAnomalyFlags(shipments || [], stats.averagePrice);
+
+    // Add data source metadata
+    metadata.dataSources.push('shipment_details');
+    if (shipments && shipments.length > 0) {
+      const sources = new Set(shipments.map((s: any) => s.source || 'MOCK'));
+      metadata.dataSources = Array.from(sources);
+
+      // Warn if using mock data
+      if (sources.has('MOCK')) {
+        metadata.warnings.push('Displaying mock shipment data. Real shipment tracking requires commercial API integration.');
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -99,6 +119,7 @@ export async function GET(request: Request) {
         stats,
         trends,
       },
+      metadata // Include data source information
     });
 
   } catch (error) {
@@ -389,6 +410,10 @@ async function addAnomalyFlags(shipments: any[], averagePrice: number) {
       risk_level: riskLevel,
       price_deviation: Math.round(deviation * 10) / 10,
       z_score: Math.round(zScore * 100) / 100,
+      // Add data quality indicator
+      data_quality: shipment.source === 'MOCK' ? DataQuality.MOCK :
+        (shipment.source && shipment.source !== 'MOCK') ? DataQuality.ENHANCED :
+          DataQuality.UNKNOWN
     };
   });
 }

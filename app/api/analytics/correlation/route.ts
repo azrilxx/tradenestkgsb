@@ -1,45 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withApiMiddleware } from '@/lib/api/middleware';
+import { z } from 'zod';
 import { analyzeCorrelations, getSectorCorrelations, generateCorrelationMatrix } from '@/lib/analytics/correlation-analyzer';
 
 /**
  * GET /api/analytics/correlation
  * Get correlation analysis data
  */
-export async function GET(request: NextRequest) {
+const Query = z.object({
+  category: z.string().optional(),
+  timeWindow: z.coerce.number().int().min(7).max(365).default(90),
+  type: z.enum(['all', 'sector', 'matrix']).default('all'),
+  productIds: z.string().optional(),
+});
+
+export const GET = withApiMiddleware(async (request: NextRequest) => {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const category = searchParams.get('category');
-    const timeWindow = searchParams.get('timeWindow') ? parseInt(searchParams.get('timeWindow')!) : 90;
-    const type = searchParams.get('type') || 'all';
+    const parsed = Query.parse({
+      category: searchParams.get('category') || undefined,
+      timeWindow: searchParams.get('timeWindow') || undefined,
+      type: (searchParams.get('type') as any) || undefined,
+      productIds: searchParams.get('productIds') || undefined,
+    });
 
     // Get specific analysis type
-    if (type === 'sector') {
-      const sectors = await getSectorCorrelations(timeWindow);
+    if (parsed.type === 'sector') {
+      const sectors = await getSectorCorrelations(parsed.timeWindow);
       return NextResponse.json({ sectors, type: 'sector' });
     }
 
-    if (type === 'matrix') {
-      const productIds = searchParams.get('productIds')?.split(',');
+    if (parsed.type === 'matrix') {
+      const productIds = parsed.productIds?.split(',');
       if (!productIds || productIds.length < 2) {
         return NextResponse.json({ error: 'At least 2 product IDs required' }, { status: 400 });
       }
 
-      const matrix = await generateCorrelationMatrix(productIds, timeWindow);
+      const matrix = await generateCorrelationMatrix(productIds, parsed.timeWindow);
       return NextResponse.json({ matrix, type: 'matrix' });
     }
 
     // Default: get all correlations
-    const correlations = await analyzeCorrelations(category || undefined, timeWindow);
+    const correlations = await analyzeCorrelations(parsed.category || undefined, parsed.timeWindow);
 
     return NextResponse.json({
       correlations,
       count: correlations.length,
-      category: category || 'all',
-      timeWindow,
+      category: parsed.category || 'all',
+      timeWindow: parsed.timeWindow,
     });
   } catch (error) {
     console.error('Error in correlation API:', error);
     return NextResponse.json({ error: 'Failed to analyze correlations' }, { status: 500 });
   }
-}
+}, { rateLimit: { windowMs: 60_000, max: 120 }, requireOrgId: true });
 

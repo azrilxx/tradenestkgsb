@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function SetupPage() {
   const [status, setStatus] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [healthData, setHealthData] = useState<any>(null);
 
   const runSeed = async () => {
     setLoading(true);
@@ -56,6 +57,49 @@ export default function SetupPage() {
       setLoading(false);
     }
   };
+
+  const refreshData = async () => {
+    setLoading(true);
+    setStatus('Refreshing real data...');
+
+    try {
+      const response = await fetch('/api/data/ingest', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setStatus('✅ Data refreshed successfully!');
+        setResult(data.status);
+        // Reload health data
+        loadHealthData();
+      } else {
+        setStatus('❌ Data refresh failed');
+      }
+    } catch (error) {
+      setStatus('❌ Error: ' + (error as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadHealthData = async () => {
+    try {
+      const response = await fetch('/api/data/health');
+      const data = await response.json();
+      if (data.success) {
+        setHealthData(data.health);
+      }
+    } catch (error) {
+      console.error('Failed to load health data:', error);
+    }
+  };
+
+  // Load health data on mount
+  useEffect(() => {
+    loadHealthData();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
@@ -170,6 +214,45 @@ export default function SetupPage() {
                 </div>
               </div>
             )}
+
+            {/* Data Refresh */}
+            <div className="border-l-4 border-purple-500 pl-4">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Step 3: Refresh Real Data
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Update data from real sources (BNM FX rates, MATRADE statistics).
+              </p>
+              <button
+                onClick={refreshData}
+                disabled={loading}
+                className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+              >
+                {loading ? 'Refreshing...' : 'Refresh Real Data'}
+              </button>
+
+              {/* Health Status */}
+              {healthData && (
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  {Object.entries(healthData.sources || {}).map(([key, source]: [string, any]) => (
+                    <div key={key} className="bg-gray-50 p-4 rounded">
+                      <div className="text-sm font-semibold text-gray-700 mb-2">{source.name}</div>
+                      <div className="text-xs text-gray-600">Records: {source.recordCount.toLocaleString()}</div>
+                      <div className="text-xs text-gray-600">
+                        Status: <span className={source.status === 'healthy' ? 'text-green-600' : 'text-yellow-600'}>
+                          {source.status}
+                        </span>
+                      </div>
+                      {source.lastUpdated && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Last: {new Date(source.lastUpdated).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Next Steps */}
             <div className="border-l-4 border-indigo-500 pl-4">

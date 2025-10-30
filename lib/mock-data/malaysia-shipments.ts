@@ -115,7 +115,9 @@ export function generateMalaysiaShipments(
     const normalizedCompanySector = normalizeSector(company.sector);
     const sectorProducts = products.filter(p => {
       const sectorHsCodes = HS_CODES_BY_SECTOR[normalizedCompanySector as keyof typeof HS_CODES_BY_SECTOR];
-      return sectorHsCodes?.includes(p.hs_code);
+      if (!sectorHsCodes) return false;
+      // Support partial matching: "7208" matches "7208.10" or "7208.90"
+      return sectorHsCodes.some(code => p.hs_code.startsWith(code));
     });
 
     if (sectorProducts.length === 0) {

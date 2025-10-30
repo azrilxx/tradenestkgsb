@@ -8,10 +8,13 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "node scripts/seed.js",
-    "seed-db": "powershell -Command \"$body = '{\\\"action\\\": \\\"seed\\\"}'; Invoke-WebRequest -Uri 'http://localhost:3002/api/seed' -Method POST -Body $body -ContentType 'application/json'\""
+    "seed-db": "powershell -Command \"$body = '{\\\"action\\\": \\\"seed\\\"}'; Invoke-WebRequest -Uri 'http://localhost:3002/api/seed' -Method POST -Body $body -ContentType 'application/json'\"",
+    "scrape-gazettes": "node scripts/scrape-gazettes-daily.js",
+    "scrape-gazettes-direct": "node scripts/scrape-gazettes-direct.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.53",
+    "@sentry/nextjs": "10.22.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.39.0",
     "ai": "^5.0.79",
@@ -21,17 +24,21 @@
     "date-fns": "^3.0.0",
     "dotenv": "^17.2.3",
     "exceljs": "^4.4.0",
+    "framer-motion": "^12.23.24",
     "jspdf": "^2.5.1",
     "lucide-react": "^0.344.0",
     "next": "^14.2.0",
+    "pdf-parse": "^2.4.5",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
+    "react-dropzone": "^14.3.8",
     "react-force-graph-2d": "^1.29.0",
     "recharts": "^2.10.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.14.3",
+    "@prisma/client": "^6.18.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
@@ -39,6 +46,8 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.0",
     "postcss": "^8",
+    "prisma": "^6.18.0",
+    "puppeteer": "^24.26.1",
     "tailwindcss": "^3.4.0",
     "typescript": "^5"
   }

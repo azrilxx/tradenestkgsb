@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { analyzeInterconnectedIntelligence } from '@/lib/analytics/connection-analyzer';
-import { predictCascadeLikelihood, predictImpact, estimateTimeToCascade } from '@/lib/ml/cascade-predictor';
+import { predictCascadeLikelihoodAPI, predictImpact, estimateTimeToCascadeAPI } from '@/lib/ml/cascade-predictor';
 import { getUserSubscription } from '@/lib/subscription/tier-checker';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -76,18 +76,18 @@ export async function GET(
       time_window: timeWindow,
 
       // Cascade likelihood prediction (0-100%)
-      likelihood: await predictCascadeLikelihood(intelligence),
+      likelihood: await predictCascadeLikelihoodAPI(intelligence),
 
       // Predicted impact if cascade occurs
       predicted_impact: await predictImpact(intelligence),
 
       // Estimated time until cascade (in days)
-      estimated_time_to_cascade: await estimateTimeToCascade(intelligence),
+      estimated_time_to_cascade: await estimateTimeToCascadeAPI(intelligence),
 
       // Confidence intervals
       confidence_interval: {
-        lower: Math.max(0, (await predictCascadeLikelihood(intelligence)) - 10),
-        upper: Math.min(100, (await predictCascadeLikelihood(intelligence)) + 10),
+        lower: Math.max(0, (await predictCascadeLikelihoodAPI(intelligence)) - 10),
+        upper: Math.min(100, (await predictCascadeLikelihoodAPI(intelligence)) + 10),
       },
 
       // Historical case matching

@@ -373,3 +373,77 @@ export interface TradeRemedyEvidence {
   charts_data?: Record<string, any>;
   created_at: string;
 }
+
+// =====================================================
+// Stage 7: Audit Trails & Legal Defensibility Types
+// =====================================================
+
+export type AuditActionType =
+  | 'report_generated'
+  | 'data_accessed'
+  | 'case_modified'
+  | 'evidence_downloaded'
+  | 'alert_created'
+  | 'rule_executed'
+  | 'benchmark_calculated';
+
+export interface AuditLog {
+  id: string;
+  action_type: AuditActionType;
+  entity_type?: string;
+  entity_id?: string;
+  user_id: string;
+  timestamp: string;
+  changes?: Record<string, any>;
+  metadata?: Record<string, any>;
+  log_hash?: string;
+  previous_log_hash?: string;
+  created_at: string;
+}
+
+export type EvidenceType = 'alert_pdf' | 'case_pdf' | 'evidence_pdf' | 'benchmark_report';
+export type VerificationStatus = 'not_verified' | 'verified' | 'tampered';
+
+export interface EvidenceHash {
+  id: string;
+  evidence_id?: string;
+  evidence_type: EvidenceType;
+  file_name: string;
+  file_size?: number;
+  file_url?: string;
+  sha256_hash: string;
+  generated_at: string;
+  generated_by?: string;
+  generation_metadata?: Record<string, any>;
+  verified_at?: string;
+  verification_status: VerificationStatus;
+  audit_log_id?: string;
+  created_at: string;
+}
+
+export interface DataLineage {
+  id: string;
+  entity_type: string;
+  entity_id: string;
+  source_type: string;
+  source_id?: string;
+  source_description?: string;
+  transformation_steps?: Record<string, any>[];
+  ownership_percent?: number;
+  used_at: string;
+  audit_log_id?: string;
+  created_at: string;
+}
+
+export interface EvidenceAuditSummary {
+  id: string;
+  evidence_id?: string;
+  evidence_type: EvidenceType;
+  file_name: string;
+  sha256_hash: string;
+  generated_at: string;
+  verification_status: VerificationStatus;
+  verified_at?: string;
+  status_indicator: string;
+  audit_log_count: number;
+}

@@ -319,7 +319,7 @@ function detectCommunities(graph: NetworkGraph): Array<{ id: string; members: st
       communityMap[comm] = [];
     }
     communityMap[comm].push(node);
-  }));
+  });
 
   // Filter communities with at least 2 members
   return Object.entries(communityMap)

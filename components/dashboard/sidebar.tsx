@@ -56,6 +56,7 @@ const navigation = [
       { name: 'Products', href: '/dashboard/products', icon: Package, shortcut: 'P' },
       { name: 'Benchmarks', href: '/dashboard/benchmarks', icon: BarChart3, shortcut: 'B' },
       { name: 'Gazette Tracker', href: '/dashboard/gazette-tracker', icon: FileText, shortcut: 'G' },
+      { name: 'Data Sources', href: '/dashboard/data-sources', icon: Settings, shortcut: 'D', badge: 'NEW' },
     ]
   },
   {

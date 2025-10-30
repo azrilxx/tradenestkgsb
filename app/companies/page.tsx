@@ -263,41 +263,43 @@ export default function CompaniesPage() {
             {filteredCompanies.map((company) => (
               <Card
                 key={company.id}
-                className="hover:shadow-lg transition-shadow cursor-pointer"
+                className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col h-full"
                 onClick={() => router.push(`/companies/${company.id}`)}
               >
-                <CardHeader>
+                <CardHeader className="flex-shrink-0">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                    <div className="flex-1 w-full">
                       <CardTitle className="text-lg font-bold line-clamp-2 mb-2">
                         {company.name}
                       </CardTitle>
                       <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                        <Globe className="h-4 w-4" />
+                        <Globe className="h-4 w-4 flex-shrink-0" />
                         {company.country}
                       </div>
-                      <Badge className={getTypeBadgeColor(company.type)}>
-                        {company.type}
-                      </Badge>
-                      <div className="mt-2">
-                        <Badge variant="outline">{company.sector}</Badge>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className={getTypeBadgeColor(company.type)}>
+                          {company.type}
+                        </Badge>
+                        <Badge variant="outline" className="whitespace-normal">
+                          {company.sector}
+                        </Badge>
                       </div>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-1 flex flex-col">
                   <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                    <div>
-                      <div className="text-xs text-gray-500">Shipments</div>
+                    <div className="flex flex-col">
+                      <div className="text-xs text-gray-500 mb-1">Shipments</div>
                       <div className="text-lg font-semibold flex items-center gap-1">
-                        <Package className="h-4 w-4" />
+                        <Package className="h-4 w-4 flex-shrink-0" />
                         {company.total_shipments.toLocaleString()}
                       </div>
                     </div>
-                    <div>
-                      <div className="text-xs text-gray-500">Trade Value</div>
+                    <div className="flex flex-col">
+                      <div className="text-xs text-gray-500 mb-1">Trade Value</div>
                       <div className="text-lg font-semibold flex items-center gap-1">
-                        <TrendingUp className="h-4 w-4" />
+                        <TrendingUp className="h-4 w-4 flex-shrink-0" />
                         {formatCurrency(company.total_value)}
                       </div>
                     </div>

@@ -52,7 +52,7 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Products</h1>
@@ -64,9 +64,8 @@ export default function ProductsPage() {
         {products.map((product) => (
           <div
             key={product.id}
-            className={`hover:shadow-lg transition-shadow cursor-pointer ${
-              selectedProduct?.id === product.id ? 'ring-2 ring-blue-500' : ''
-            }`}
+            className={`hover:shadow-lg transition-shadow cursor-pointer ${selectedProduct?.id === product.id ? 'ring-2 ring-blue-500' : ''
+              }`}
             onClick={() => setSelectedProduct(product)}
           >
             <Card>

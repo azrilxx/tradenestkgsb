@@ -69,7 +69,7 @@ export default function ReportsPage() {
   ];
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Executive Intelligence Reports</h1>
         <p className="text-gray-600 mt-1">
@@ -89,8 +89,8 @@ export default function ReportsPage() {
                 key={template.id}
                 onClick={() => setReportType(template.id as any)}
                 className={`p-4 border-2 rounded-lg text-left transition-all ${reportType === template.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                   }`}
               >
                 <div className="flex items-start gap-3">

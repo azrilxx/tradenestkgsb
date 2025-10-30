@@ -94,7 +94,7 @@ export default function CorrelationDashboard() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Cross-Sector Correlation Analysis</h1>
@@ -109,8 +109,8 @@ export default function CorrelationDashboard() {
         <button
           onClick={() => setActiveTab('all')}
           className={`px-4 py-2 font-medium ${activeTab === 'all'
-              ? 'border-b-2 border-blue-500 text-blue-600'
-              : 'text-gray-600 hover:text-gray-900'
+            ? 'border-b-2 border-blue-500 text-blue-600'
+            : 'text-gray-600 hover:text-gray-900'
             }`}
         >
           All Correlations ({correlations.length})
@@ -118,8 +118,8 @@ export default function CorrelationDashboard() {
         <button
           onClick={() => setActiveTab('sectors')}
           className={`px-4 py-2 font-medium ${activeTab === 'sectors'
-              ? 'border-b-2 border-blue-500 text-blue-600'
-              : 'text-gray-600 hover:text-gray-900'
+            ? 'border-b-2 border-blue-500 text-blue-600'
+            : 'text-gray-600 hover:text-gray-900'
             }`}
         >
           Sector Analysis ({sectors.length})

@@ -85,11 +85,25 @@ async function reseed() {
   console.log('\n🌱 Re-seeding Database...\n');
 
   try {
-    const response = await fetch('http://localhost:3000/api/seed', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'seed' })
-    });
+    // Try multiple ports in case dev server is running on different port
+    const ports = ['3000', '3001', '3002', '3003', '3004'];
+    let response;
+    let port = 3000;
+
+    for (const p of ports) {
+      try {
+        console.log(`Trying port ${p}...`);
+        response = await fetch(`http://localhost:${p}/api/seed`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'seed' })
+        });
+        port = p;
+        if (response.ok) break;
+      } catch (e) {
+        continue;
+      }
+    }
 
     const data = await response.json();
 

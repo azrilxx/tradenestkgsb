@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withApiMiddleware } from '@/lib/api/middleware';
+import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
 import { analyzeInterconnectedIntelligence } from '@/lib/analytics/connection-analyzer';
 
@@ -9,10 +11,14 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
  * POST /api/analytics/connections/monitor
  * Start background monitoring for active alerts
  */
-export async function POST(request: NextRequest) {
+const PostBody = z.object({
+  alertId: z.string().uuid(),
+  timeWindow: z.number().int().min(7).max(180).default(30),
+});
+
+export const POST = withApiMiddleware(async (request: NextRequest, body: z.infer<typeof PostBody>) => {
   try {
-    const body = await request.json();
-    const { alertId, timeWindow = 30 } = body;
+    const { alertId, timeWindow } = body;
 
     if (!alertId) {
       return NextResponse.json(
@@ -69,13 +75,13 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+}, { schema: PostBody, rateLimit: { windowMs: 60_000, max: 60 }, idempotent: true, requireOrgId: true });
 
 /**
  * GET /api/analytics/connections/monitor?alertId=xxx
  * Get current monitoring status for an alert
  */
-export async function GET(request: NextRequest) {
+export const GET = withApiMiddleware(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     const alertId = searchParams.get('alertId');
@@ -142,15 +148,19 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+}, { rateLimit: { windowMs: 60_000, max: 120 }, requireOrgId: true });
 
 /**
  * PUT /api/analytics/connections/monitor
  * Update monitoring configuration
  */
-export async function PUT(request: NextRequest) {
+const PutBody = z.object({
+  alertId: z.string().uuid(),
+  config: z.any(), // Using z.any() instead of z.record() for flexibility
+});
+
+export const PUT = withApiMiddleware(async (_request: NextRequest, body: z.infer<typeof PutBody>) => {
   try {
-    const body = await request.json();
     const { alertId, config } = body;
 
     if (!alertId || !config) {
@@ -173,13 +183,13 @@ export async function PUT(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+}, { schema: PutBody, rateLimit: { windowMs: 60_000, max: 60 }, requireOrgId: true });
 
 /**
  * DELETE /api/analytics/connections/monitor
  * Stop monitoring for an alert
  */
-export async function DELETE(request: NextRequest) {
+export const DELETE = withApiMiddleware(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     const alertId = searchParams.get('alertId');
@@ -205,5 +215,5 @@ export async function DELETE(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+}, { rateLimit: { windowMs: 60_000, max: 60 }, requireOrgId: true });
 

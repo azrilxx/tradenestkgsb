@@ -361,9 +361,9 @@ function getDefaultPrediction(reason: string): CascadePrediction {
  */
 
 /**
- * Predict cascade likelihood (0-100%)
+ * Predict cascade likelihood (0-100%) - API version
  */
-export async function predictCascadeLikelihood(intelligence: any): Promise<number> {
+export async function predictCascadeLikelihoodAPI(intelligence: any): Promise<number> {
   if (!intelligence) return 50;
 
   const baseRisk = intelligence.risk_assessment?.overall_risk || 50;
@@ -399,9 +399,9 @@ export async function predictImpact(intelligence: any): Promise<number> {
 }
 
 /**
- * Estimate time to cascade in days
+ * Estimate time to cascade in days - API version
  */
-export async function estimateTimeToCascade(intelligence: any): Promise<number> {
+export async function estimateTimeToCascadeAPI(intelligence: any): Promise<number> {
   if (!intelligence) return 30;
 
   const baseRisk = intelligence.risk_assessment?.overall_risk || 50;
@@ -435,6 +435,6 @@ export async function predictIntelligence(data: {
   intelligence: any;
   timeWindow: number;
 }): Promise<number> {
-  return predictCascadeLikelihood(data.intelligence);
+  return predictCascadeLikelihoodAPI(data.intelligence);
 }
 

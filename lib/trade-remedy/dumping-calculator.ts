@@ -135,7 +135,7 @@ export function generateCausationSummary(
   priceDepression: number,
   domesticMarketLoss: number
 ): string {
-  const factors = [];
+  const severity = dumpingMargin >= 50 ? 'severe' : dumpingMargin >= 20 ? 'significant' : 'moderate'; const factors = [];
 
   if (dumpingMargin > 20) {
     factors.push(`high dumping margin of ${dumpingMargin.toFixed(1)}%`);

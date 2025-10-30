@@ -248,6 +248,7 @@ export async function seedDatabase() {
     // Step 7: Generate Malaysia Shipments
     console.log('📦 Generating Malaysia shipment data...');
     let shipments: any[] = [];
+    let shipmentsInserted = 0;
     if (companies && ports && products) {
       shipments = generateMalaysiaShipments(
         companies,
@@ -261,18 +262,33 @@ export async function seedDatabase() {
       // Insert shipments in batches
       const shipmentBatchSize = 100;
       let totalInserted = 0;
+      let failedBatches = 0;
       for (let i = 0; i < shipments.length; i += shipmentBatchSize) {
         const batch = shipments.slice(i, i + shipmentBatchSize);
+        const batchNum = i / shipmentBatchSize + 1;
         const { data, error } = await supabase.from('shipments').insert(batch).select();
         if (error) {
-          console.error(`❌ Error inserting shipment batch ${i / shipmentBatchSize + 1}:`, error);
-          console.error('Sample batch data:', JSON.stringify(batch[0], null, 2));
+          failedBatches++;
+          console.error(`❌ Error inserting shipment batch ${batchNum}/${Math.ceil(shipments.length / shipmentBatchSize)}:`);
+          console.error(`   Error Code: ${error.code || 'UNKNOWN'}`);
+          console.error(`   Error Message: ${error.message}`);
+          console.error(`   Error Hint: ${error.hint || 'No hint provided'}`);
+          console.error(`   Error Details: ${error.details || 'No details provided'}`);
+          console.error('   First item in batch:', JSON.stringify(batch[0], null, 2));
         } else {
           totalInserted += data?.length || 0;
-          console.log(`  ✓ Batch ${i / shipmentBatchSize + 1}: Inserted ${data?.length || 0} shipments`);
+          console.log(`  ✓ Batch ${batchNum}: Inserted ${data?.length || 0} shipments`);
         }
       }
-      console.log(`✅ Inserted ${totalInserted} of ${shipments.length} shipment records`);
+      if (failedBatches > 0) {
+        console.error(`❌ Shipments insertion had ${failedBatches} failed batches`);
+        console.error(`   Total inserted: ${totalInserted} of ${shipments.length} expected`);
+      } else {
+        console.log(`✅ Inserted ${totalInserted} of ${shipments.length} shipment records`);
+      }
+
+      // Store the actual inserted count
+      shipmentsInserted = totalInserted;
     }
 
     // Step 8: Insert Anomalies
@@ -468,7 +484,7 @@ export async function seedDatabase() {
         products: products?.length || 0,
         companies: companies?.length || 0,
         ports: ports?.length || 0,
-        shipments: shipments?.length || 0,
+        shipments: shipmentsInserted || shipments?.length || 0,
         prices: allPriceData.length,
         tariffs: allTariffData.length,
         fxRates: allFxData.length,
