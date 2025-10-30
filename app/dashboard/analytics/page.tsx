@@ -5,13 +5,17 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SeverityChart } from '@/components/dashboard/severity-chart';
 import { TypeChart } from '@/components/dashboard/type-chart';
+import { RefreshCw, AlertCircle, Info } from 'lucide-react';
 
 export default function AnalyticsPage() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [dataHealth, setDataHealth] = useState<any>(null);
+  const [fetchingHealth, setFetchingHealth] = useState(true);
 
   useEffect(() => {
     fetchAnalytics();
+    fetchHealth();
   }, []);
 
   const fetchAnalytics = async () => {
@@ -24,6 +28,18 @@ export default function AnalyticsPage() {
       console.error('Error fetching analytics:', error);
     } finally {
       setLoading(false);
+    }
+  };
+  const fetchHealth = async () => {
+    setFetchingHealth(true);
+    try {
+      const res = await fetch('/api/data/health');
+      const data = await res.json();
+      if (data.success) setDataHealth(data.health);
+    } catch (err) {
+      setDataHealth(null);
+    } finally {
+      setFetchingHealth(false);
     }
   };
 
@@ -48,40 +64,82 @@ export default function AnalyticsPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
-          <p className="text-gray-600 mt-1">Visualize anomaly patterns and trends</p>
-        </div>
-        <Button onClick={fetchAnalytics}>
-          🔄 Refresh
+      {/* Data Status Industry Banner */}
+      <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded flex items-center gap-4 text-sm">
+        {fetchingHealth ? (
+          <span className="text-gray-500">Checking data sources ...</span>
+        ) : dataHealth ? (
+          <>
+            <div>
+              <strong>Last Updated:</strong>{' '}
+              {dataHealth.timestamp ? new Date(dataHealth.timestamp).toLocaleString() : 'Unknown'}
+            </div>
+            <div className="hidden md:inline">
+              <strong>Sources:</strong>
+              <span className="mx-1">BNM FX</span>
+              <Info className="inline w-3 h-3 text-blue-400 align-text-top" title="Bank Negara Malaysia FX rates" />
+              ({dataHealth.sources?.fx_rates?.status}) |
+              <span className="mx-1">MATRADE</span>
+              <Info className="inline w-3 h-3 text-blue-400 align-text-top" title="MATRADE trade statistics" />
+              ({dataHealth.sources?.trade_statistics?.status})
+            </div>
+            <div className="inline-block">
+              {Object.values(dataHealth.sources || {}).some((s:any)=>s.isStale) ? (
+                <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">
+                  <AlertCircle className="w-4 h-4 mr-1" /> Data may be delayed
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                  <Info className="w-4 h-4 mr-1" /> Data healthy
+                </span>
+              )}
+            </div>
+          </>
+        ) : (
+          <span className="text-red-600">Unable to retrieve data source status</span>
+        )}
+        <Button size="sm" className="ml-auto" onClick={fetchHealth} variant="secondary">
+          <RefreshCw className="w-4 h-4" /> Check Again
         </Button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-sm text-gray-600">Total Alerts</div>
-            <div className="text-4xl font-bold text-gray-900 mt-2">{stats.total}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-sm text-gray-600">Active Alerts</div>
-            <div className="text-4xl font-bold text-blue-600 mt-2">{stats.new + stats.viewed}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-sm text-gray-600">Resolution Rate</div>
-            <div className="text-4xl font-bold text-green-600 mt-2">
-              {stats.total > 0 ? Math.round((stats.resolved / stats.total) * 100) : 0}%
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Summary Cards, pass health info as a mini-caption */}
+      {stats && dataHealth && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-sm text-gray-600">Total Alerts</div>
+              <div className="text-xs text-gray-500 mb-1">
+                Updated: {dataHealth.sources?.trade_statistics?.lastUpdated ? new Date(dataHealth.sources.trade_statistics.lastUpdated).toLocaleDateString() : 'Unknown'} | Source: MATRADE
+                {dataHealth.sources?.trade_statistics?.isStale ? <span className="ml-1 text-yellow-700">(Delayed)</span> : null}
+              </div>
+              <div className="text-4xl font-bold text-gray-900 mt-2">{stats.total}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-sm text-gray-600">Active Alerts</div>
+              <div className="text-xs text-gray-500 mb-1">
+                Updated: {dataHealth.sources?.trade_statistics?.lastUpdated ? new Date(dataHealth.sources.trade_statistics.lastUpdated).toLocaleDateString() : 'Unknown'} | Source: MATRADE
+                {dataHealth.sources?.trade_statistics?.isStale ? <span className="ml-1 text-yellow-700">(Delayed)</span> : null}
+              </div>
+              <div className="text-4xl font-bold text-blue-600 mt-2">{stats.new + stats.viewed}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-sm text-gray-600">Resolution Rate</div>
+              <div className="text-xs text-gray-500 mb-1">
+                Updated: {dataHealth.sources?.trade_statistics?.lastUpdated ? new Date(dataHealth.sources.trade_statistics.lastUpdated).toLocaleDateString() : 'Unknown'} | Source: MATRADE
+                {dataHealth.sources?.trade_statistics?.isStale ? <span className="ml-1 text-yellow-700">(Delayed)</span> : null}
+              </div>
+              <div className="text-4xl font-bold text-green-600 mt-2">
+                {stats.total > 0 ? Math.round((stats.resolved / stats.total) * 100) : 0}%
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

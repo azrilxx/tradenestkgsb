@@ -62,7 +62,6 @@ export default function DashboardPage() {
       // Fetch evidence data
       const response = await fetch(`/api/evidence/${alert.id}`);
       const data = await response.json();
-
       if (data.success) {
         // Dynamically import the PDF generator
         const { generateAndDownloadEvidence } = await import('@/lib/pdf/evidence-generator');
@@ -87,7 +86,6 @@ export default function DashboardPage() {
           </div>
           <div className="h-10 bg-gray-200 rounded w-24 animate-pulse"></div>
         </div>
-
         {/* KPI Cards Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
@@ -103,7 +101,6 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
-
         {/* Charts Skeleton */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg border border-gray-200 p-6 animate-pulse">
@@ -119,7 +116,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-
         {/* Table Skeleton */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 animate-pulse">
           <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
@@ -146,7 +142,6 @@ export default function DashboardPage() {
           Refresh
         </Button>
       </div>
-
       {/* KPI Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -216,7 +211,6 @@ export default function DashboardPage() {
           />
         </div>
       )}
-
       {/* Alert Breakdown */}
       {stats && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -236,7 +230,6 @@ export default function DashboardPage() {
               />
             </CardContent>
           </Card>
-
           {/* By Type */}
           <Card>
             <CardHeader>
@@ -265,7 +258,6 @@ export default function DashboardPage() {
           </Card>
         </div>
       )}
-
       {/* Alert Trends */}
       {stats && (
         <Card>
@@ -287,7 +279,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       )}
-
       {/* Recent Alerts Table */}
       <Card>
         <CardHeader>
