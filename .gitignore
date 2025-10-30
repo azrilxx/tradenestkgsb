@@ -6,6 +6,11 @@ node_modules
 
 # Exclude all markdown documentation files
 *.md
+docs/**/*.md
 
 # But allow root README.md
+!README.md
+
+# Exclude all discussions and trade secrets
+*.md
 !README.md

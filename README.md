@@ -1,221 +1,294 @@
-# Trade Nest
+# Trade Nest - Trade Intelligence Platform
 
-**Trade Anomaly Detection Platform** - Automated detection of pricing & tariff anomalies for import/export businesses.
+**Enterprise-Grade Trade Anomaly Detection & Intelligence Platform**
 
-## 🎯 Project Overview
+[![Platform Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)]()
+[![Version](https://img.shields.io/badge/Version-1.0-blue)]()
+[![Next.js](https://img.shields.io/badge/Next.js-14.2-black)]()
+[![Supabase](https://img.shields.io/badge/Supabase-Enabled-green)]()
 
-Trade Nest is a subscription-based SaaS platform designed to help Malaysian import/export businesses detect anomalies in:
-- **Price fluctuations** (Z-score analysis)
-- **Tariff changes** (policy updates)
-- **Freight cost spikes** (shipping route analysis)
-- **FX rate volatility** (currency risk management)
+---
 
-**Current Status**: Phase 8 Complete - Production Ready Platform ✅
+## 🎯 Overview
+
+Trade Nest is a comprehensive SaaS platform for trade anomaly detection, intelligence analysis, and compliance management. Built with enterprise-grade architecture for Malaysian import/export businesses.
+
+### Key Features
+
+✅ **Real-Time Anomaly Detection** - Automated detection of pricing & tariff anomalies  
+✅ **Interconnected Intelligence** - Graph theory-based connection analysis  
+✅ **AI-Powered Insights** - Llama 3 70B integration via OpenRouter  
+✅ **Government Data Integration** - BNM FX rates, MATRADE statistics, Malaysian Gazettes  
+✅ **Malaysian-Specific** - Gazette tracking, trade remedies, FMM portal  
+✅ **Subscription Infrastructure** - Three-tier monetization (Free/Professional/Enterprise)  
+✅ **Enterprise Security** - Multitenancy, RLS, audit trails
+
+---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ installed
-- Supabase account (free tier)
-- Git
+
+- Node.js 18+
+- Supabase account
+- OpenRouter API key (for AI features)
 
 ### Installation
 
-1. **Clone or navigate to the project**
-   ```bash
-   cd tradenest
-   ```
+```bash
+# Install dependencies
+npm install
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+# Configure environment
+cp .env.example .env.local
+# Add your Supabase and API keys
 
-3. **Environment setup**
-   The `.env.local` file is already configured with Supabase credentials:
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=https://fckszlhkvdnrvgsjymgs.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-   ```
+# Run database migrations
+# See docs/deployment/APPLY_MISSING_MIGRATIONS.md
 
-4. **Run database migration**
-   - Go to [Supabase SQL Editor](https://fckszlhkvdnrvgsjymgs.supabase.co)
-   - Open `supabase/migrations/001_initial_schema.sql`
-   - Copy the entire SQL file
-   - Paste into SQL Editor and click **Run**
+# Start development server
+npm run dev
 
-5. **Start development server**
-   ```bash
-   npm run dev
-   ```
+# Access the application
+open http://localhost:3000
+```
 
-6. **Seed the database**
-   - Navigate to: http://localhost:3000/setup
-   - Click "Seed Database"
-   - Wait for confirmation (creates 6 months of mock data + anomalies)
-
-7. **Test anomaly detection**
-   - Navigate to: http://localhost:3000/detect
-   - Click "Run Detection"
-   - View real-time anomaly detection results
+---
 
 ## 📁 Project Structure
 
 ```
 tradenest/
-├── app/                     # Next.js App Router
-│   ├── api/                # API Routes (alerts, analytics, AI, etc.)
-│   ├── dashboard/          # Dashboard pages
-│   ├── associations/      # FMM association portals
-│   └── (auth)/            # Authentication pages
-├── lib/                    # Core business logic
-│   ├── analytics/         # Analytics engines
-│   ├── anomaly-detection/ # Detection algorithms
-│   ├── customs-declaration/ # Customs checker
-│   ├── mock-data/         # Data generators
-│   ├── pdf/               # PDF generation
-│   └── trade-remedy/      # Trade remedy calculations
-├── components/             # React components
-│   ├── dashboard/         # Dashboard components
-│   └── ui/                # Base UI components
-├── types/                  # TypeScript definitions
-├── scripts/                # Database & utility scripts
-├── supabase/              # Database migrations
-└── docs/                   # Documentation
-    ├── architecture/       # Technical documentation
-    ├── guides/            # Integration guides
-    ├── history/           # Phase completion summaries
-    └── planning/           # Project planning docs
+├── app/                      # Next.js App Router
+│   ├── api/                 # API endpoints (50+ routes)
+│   ├── dashboard/           # Dashboard pages
+│   ├── (auth)/              # Authentication pages
+│   └── ...
+├── components/              # React components (40+ components)
+│   ├── dashboard/
+│   ├── intelligence/
+│   └── ui/
+├── lib/                     # Business logic (50+ modules)
+│   ├── analytics/
+│   ├── anomaly-detection/
+│   ├── api/                 # API middleware
+│   ├── data-sources/
+│   └── ...
+├── scripts/                 # Utility scripts
+│   ├── test/
+│   ├── sql/
+│   └── ...
+├── supabase/               # Database
+│   └── migrations/         # 24+ migrations
+├── docs/                   # Documentation
+│   ├── architecture/       # Technical docs
+│   ├── deployment/         # Deployment guides
+│   ├── fixes/              # Troubleshooting
+│   ├── guides/             # Integration guides
+│   ├── history/            # Phase summaries
+│   ├── planning/           # Project planning
+│   └── status/             # Status reports
+└── types/                  # TypeScript definitions
 ```
 
-## 🗄️ Database Schema
-
-### Core Tables
-- `products` - Product catalog with HS codes (50 products)
-- `price_data` - Historical pricing (6 months, ~5,400 records)
-- `tariff_data` - Tariff rates over time (~60 records)
-- `fx_rates` - FX rates for 5 currency pairs (~900 records)
-- `freight_index` - Freight costs for 5 routes (~900 records)
-- `anomalies` - Detected anomalies (10 demo anomalies)
-- `alerts` - Alert tracking system
-- `users` - User profiles (extends Supabase Auth)
-
-### Views
-- `v_alerts_with_details` - Alerts joined with anomaly and product data
-- `v_product_price_trends` - Price trends with anomaly flags
-
-### Functions
-- `calculate_price_stats()` - Calculate avg, stddev, min, max for price data
-- `get_anomaly_count()` - Count anomalies by severity and date range
+---
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: Next.js 14 (App Router), React 18, TypeScript
-- **Styling**: Tailwind CSS
-- **Database**: Supabase (PostgreSQL + Auth + Realtime)
-- **Charts**: Recharts
-- **PDF**: jsPDF
-- **Icons**: Lucide React
-- **Date Utils**: date-fns
+### Frontend
+- **Next.js 14** (App Router)
+- **React 18** + **TypeScript**
+- **Tailwind CSS**
+- **Recharts** (visualization)
+- **Cytoscape.js** (network graphs)
 
-## 📊 Phase Completion Status
+### Backend
+- **Next.js API Routes**
+- **Supabase** (PostgreSQL + Auth + Realtime)
+- **OpenRouter AI** (Llama 3 70B)
+- **jsPDF** (document generation)
 
-### ✅ Phase 1: Foundation (COMPLETE)
-### ✅ Phase 2: Core Business Logic (COMPLETE)
-### ✅ Phase 3: User Interface (COMPLETE)
-### ✅ Phase 4: Evidence & Polish (COMPLETE)
-### ✅ Phase 5: Deployment (COMPLETE)
-### ✅ Phase 6: Platform Enhancement (COMPLETE)
-### ✅ Phase 7: Malaysia-Specific Features (COMPLETE)
-  - [x] Gazette Tracker
-  - [x] Trade Remedy Workbench
-  - [x] FMM Association Portal
-  - [x] Customs Declaration Checker
-### ✅ Phase 8: Wood Mackenzie Analytics (COMPLETE)
-  - [x] Interconnected Intelligence Dashboard
-  - [x] Expert Insights Panel
-  - [x] Scenario Modeling
-  - [x] Executive Intelligence Reports
-  - [x] Cross-Sector Correlation
-  - [x] Automated Risk Scoring
+### Infrastructure
+- **Netlify** (hosting)
+- **Sentry** (error monitoring)
+- **Cron Jobs** (automated tasks)
 
-**All phases complete - Platform ready for production deployment** 🚀
+---
 
-## 🎨 Design Philosophy
-
-**Focus**: Investor-ready prototype for seed capital pitch
-**Priority**: Demonstrable value over production-ready features
-**Timeline**: 8-day sprint to working demo
-
-## 📖 Key Documents
+## 📚 Documentation
 
 ### Getting Started
-- [Quick Start Guide](docs/guides/GETTING_STARTED.md) - Setup instructions
-- [Architecture Overview](docs/architecture/README.md) - Technical documentation
+- [Quick Start Guide](docs/guides/GETTING_STARTED.md)
+- [Environment Setup](docs/deployment/SETUP_ENV_FILE.md)
+- [Database Setup](docs/guides/FULL_DATABASE_SETUP.md)
 
-### Planning & Strategy
-- [Master Plan](docs/planning/MASTER_PLAN.md) - Strategic roadmap
-- [Task Breakdown](docs/planning/TASK_BREAKDOWN.md) - Detailed task list
-- [FMM Strategy](docs/planning/FMM_STRATEGY.md) - Association partnerships
+### Architecture
+- [Platform Status Report](docs/status/PLATFORM_STATUS_REPORT.md)
+- [Master Plan](docs/planning/MASTER_PLAN.md)
+- [Task Breakdown](docs/planning/TASK_BREAKDOWN.md)
 
 ### Integration Guides
-- [AI Gateway Integration](docs/guides/AI-GATEWAY-INTEGRATION.md)
-- [FMM Integration Guide](docs/guides/FMM-INTEGRATION-GUIDE.md)
-- [MATRADE Data Integration](docs/guides/MATRADE-DATA-INTEGRATION-PLAN.md)
+- [AI Integration](docs/guides/AI-GATEWAY-INTEGRATION.md)
+- [FMM Integration](docs/guides/FMM-INTEGRATION-GUIDE.md)
+- [MATRADE Data](docs/guides/MATRADE-DATA-INTEGRATION-PLAN.md)
 
-### Historical Development
-- [Phase Completion Summaries](docs/history/) - All phase summaries
-- [Project Brief](docs/planning/project_brief.md) - Original requirements
+### Deployment
+- [Netlify Deployment](docs/deployment/NETLIFY_DEPLOYMENT_GUIDE.md)
+- [Migration Guide](docs/deployment/DEPLOYMENT_CHECKLIST.md)
 
-## 🔐 Security Notes
+### Troubleshooting
+- [Common Issues](docs/fixes/)
+- [Data Sources](docs/DATA_SOURCES.md)
 
-- Environment variables stored in `.env.local` (gitignored)
-- Row-level security (RLS) enabled on all tables
-- Public read access for prototype (restrict in production)
-- Supabase anon key is safe for client-side use
+---
 
-## 🧪 Testing the Setup
+## 🗄️ Database
 
-After seeding, verify your data:
+### Tables (20+)
+- `products`, `price_data`, `tariff_data`, `fx_rates`
+- `companies`, `ports`, `shipments`
+- `alerts`, `anomalies`
+- `organizations`, `user_org_memberships`
+- `gazettes`, `trade_statistics`
+- And more...
 
-1. Go to Supabase dashboard > Table Editor
-2. Check `products` table - should have 50 rows
-3. Check `price_data` table - should have ~5,400 rows
-4. Check `anomalies` table - should have 10 rows
-5. Check `alerts` table - should have 10 rows
+### Migrations (24+)
+All migrations in `supabase/migrations/`
 
-Query example in SQL Editor:
-```sql
-SELECT * FROM v_alerts_with_details LIMIT 10;
-```
+**Latest:**
+- `024_multitenancy_orgs.sql` - Organizations & multitenancy
+- `025_views_org_alerts.sql` - Org-scoped views
 
-## 🚢 Deployment
+---
 
-The application is deployed on Netlify.
+## 🔌 API Endpoints
 
+### Analytics
+- `GET /api/analytics/correlation` - Correlation analysis
+- `POST /api/analytics/connections` - Connection analysis
+- `GET /api/analytics/risk-score` - Risk scoring
+
+### Intelligence
+- `POST /api/analytics/connections/monitor` - Start monitoring
+- `GET /api/analytics/insights/[alertId]` - AI insights
+- `POST /api/analytics/scenario` - Scenario modeling
+
+### Data Sources
+- `GET /api/data-sources/refresh` - Refresh data
+- `GET /api/cron/fetch-bnm-rates` - Fetch FX rates
+
+### AI
+- `POST /api/ai/chat` - AI chat
+- `POST /api/ai/explain-alert` - Alert explanations
+- `POST /api/ai/analyze-company` - Company analysis
+
+---
+
+## 🔐 Enterprise Features
+
+### Security
+- ✅ Row Level Security (RLS) on all tables
+- ✅ Organization-based multitenancy
+- ✅ Audit trails for all operations
+- ✅ API middleware (validation, rate limiting, idempotency)
+
+### Monitoring
+- ✅ Sentry error tracking
+- ✅ Request logging
+- ✅ Performance monitoring
+- ✅ Data freshness tracking
+
+### Subscription Tiers
+- **Free**: 5 analyses/month, 30-day window
+- **Professional**: Unlimited analyses, 90-day window
+- **Enterprise**: ML predictions, API access, 180-day window
+
+---
+
+## 🧪 Testing
+
+### Run Tests
 ```bash
-# Build for production
-npm run build
+# Run all tests
+npm test
 
-# Deploy via Netlify (configured with netlify.toml)
-# Push to GitHub master branch to trigger automatic deployment
-git push origin master
+# Database migration test
+npm run test-db
+
+# AI integration test
+npm run test-ai
 ```
 
-## 📞 Support
+### Test Scripts
+Located in `scripts/test/`:
+- `test-supabase.js` - Database connection
+- `test-bnm-api.js` - BNM API integration
+- `test-ai-local.js` - AI features
+
+---
+
+## 📊 Project Status
+
+### Completion: 100%
+
+- ✅ Phase 1: Foundation
+- ✅ Phase 2: Core Logic
+- ✅ Phase 3: User Interface
+- ✅ Phase 4: Evidence & Polish
+- ✅ Phase 5: Deployment
+- ✅ Phase 6: Platform Enhancement
+- ✅ Phase 7: Malaysia-Specific Features
+- ✅ Phase 8: Wood Mackenzie Analytics
+
+**All planned features complete and production-ready.**
+
+---
+
+## 🌍 Data Sources
+
+### Real Government Data
+- ✅ **BNM FX Rates** - Daily automated fetch
+- ✅ **MATRADE Statistics** - Quarterly trade data
+- ✅ **Malaysian Gazettes** - Automated PDF scraping
+
+### Mock Data (for demo)
+- ⚠️ Shipment details
+- ⚠️ Price data
+
+See [DATA_SOURCES.md](docs/DATA_SOURCES.md) for details.
+
+---
+
+## 🤝 Contributing
+
+This is a proprietary project for seed capital funding.
 
 For issues or questions:
-- Check [Task Breakdown](docs/planning/TASK_BREAKDOWN.md) for current progress
-- Review [Master Plan](docs/planning/MASTER_PLAN.md) for context
-- See [Architecture Docs](docs/architecture/README.md) for technical details
-- Verify Supabase connection at http://localhost:3000/setup
+1. Check [docs/fixes/](docs/fixes/) for solutions
+2. Review [docs/status/](docs/status/) for latest status
+3. See [docs/guides/](docs/guides/) for integration help
+
+---
 
 ## 📝 License
 
 Proprietary - Trade Nest Prototype
 
----
-
-**Built with** ⚡ Next.js | 🗄️ Supabase | 🎨 Tailwind CSS
+**Built with** ⚡ Next.js | 🗄️ Supabase | 🎨 Tailwind CSS | 🤖 AI
 
 **Goal**: Secure seed capital funding 💰
+
+---
+
+## 📞 Support
+
+- **Documentation**: [docs/](docs/)
+- **Status Reports**: [docs/status/](docs/status/)
+- **Architecture**: [docs/architecture/](docs/architecture/)
+
+---
+
+**Last Updated**: January 2025  
+**Version**: 1.0 Production-Ready  
+**Platform**: Enterprise-Grade SaaS
+
