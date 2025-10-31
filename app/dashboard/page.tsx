@@ -222,8 +222,8 @@ export default function DashboardPage() {
       {stats && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* By Severity */}
-          <Card className="overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-transparent">
+          <Card>
+            <CardHeader className="border-b-4 border-blue-500 bg-blue-50">
               <div className="flex items-center justify-between">
                 <CardTitle>Alerts by Severity</CardTitle>
                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
@@ -243,8 +243,8 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           {/* By Type */}
-          <Card className="overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-purple-50 to-transparent">
+          <Card>
+            <CardHeader className="border-b-4 border-purple-500 bg-purple-50">
               <CardTitle>Alerts by Type</CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
@@ -272,8 +272,8 @@ export default function DashboardPage() {
       )}
       {/* Alert Trends */}
       {stats && (
-        <Card className="overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-indigo-50 to-transparent">
+        <Card>
+          <CardHeader className="border-b-4 border-indigo-500 bg-indigo-50">
             <CardTitle>Alert Trends (Last 7 Days)</CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
