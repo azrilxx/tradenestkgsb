@@ -29,6 +29,13 @@ export async function createServerClient() {
 }
 
 /**
+ * Alias for backward compatibility
+ */
+export async function createClient() {
+  return createServerClient();
+}
+
+/**
  * Get the current authenticated user on the server
  */
 export async function getServerUser() {
