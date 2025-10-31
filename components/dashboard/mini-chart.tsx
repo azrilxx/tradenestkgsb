@@ -17,16 +17,16 @@ export function MiniChart({ data, color = '#3B82F6', height = 40 }: MiniChartPro
   }
 
   return (
-    <div style={{ height }}>
+    <div style={{ height }} className="relative">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data}>
           <Line
             type="monotone"
             dataKey="value"
             stroke={color}
-            strokeWidth={2}
+            strokeWidth={2.5}
             dot={false}
-            activeDot={false}
+            activeDot={{ r: 4, fill: color }}
           />
         </LineChart>
       </ResponsiveContainer>

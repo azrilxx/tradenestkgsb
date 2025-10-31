@@ -19,12 +19,12 @@ export function SeverityChart({ data }: SeverityChartProps) {
   }
 
   return (
-    <div className="h-48">
+    <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
           layout="horizontal"
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
         >
           <XAxis type="number" hide />
           <YAxis
@@ -32,10 +32,10 @@ export function SeverityChart({ data }: SeverityChartProps) {
             dataKey="severity"
             axisLine={false}
             tickLine={false}
-            tick={{ fontSize: 12, fill: '#6B7280' }}
-            width={60}
+            tick={{ fontSize: 14, fill: '#6B7280', fontWeight: 500 }}
+            width={80}
           />
-          <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+          <Bar dataKey="count" radius={[0, 8, 8, 0]} barSize={40}>
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}

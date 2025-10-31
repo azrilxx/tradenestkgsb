@@ -134,13 +134,20 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Monitor trade anomalies and alerts</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Dashboard Overview</h1>
+          <p className="text-gray-500 text-sm mt-1.5">Monitor trade anomalies and alerts in real-time</p>
         </div>
-        <Button onClick={fetchDashboardData} className="flex items-center gap-2 hover:shadow-md transition-shadow">
-          <RefreshCw className="w-4 h-4" />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-3">
+          <select className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-shadow">
+            <option>Last 7 days</option>
+            <option>Last 30 days</option>
+            <option>Last 90 days</option>
+          </select>
+          <Button onClick={fetchDashboardData} className="flex items-center gap-2 hover:shadow-md transition-shadow">
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </Button>
+        </div>
       </div>
       {/* KPI Cards */}
       {stats && (
@@ -215,11 +222,16 @@ export default function DashboardPage() {
       {stats && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* By Severity */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Alerts by Severity</CardTitle>
+          <Card className="overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-transparent">
+              <div className="flex items-center justify-between">
+                <CardTitle>Alerts by Severity</CardTitle>
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  {stats.total} Total
+                </span>
+              </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <SeverityChart
                 data={[
                   { severity: 'Critical', count: stats.bySeverity?.critical || 0, color: '#EF4444' },
@@ -231,11 +243,11 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           {/* By Type */}
-          <Card>
-            <CardHeader>
+          <Card className="overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-purple-50 to-transparent">
               <CardTitle>Alerts by Type</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <div className="space-y-3">
                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                   <span className="font-medium">💰 Price Spikes</span>
@@ -260,11 +272,11 @@ export default function DashboardPage() {
       )}
       {/* Alert Trends */}
       {stats && (
-        <Card>
-          <CardHeader>
+        <Card className="overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-indigo-50 to-transparent">
             <CardTitle>Alert Trends (Last 7 Days)</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <TrendChart
               data={[
                 { date: '2024-01-20', alerts: 12, critical: 2, high: 3, medium: 4, low: 3 },
@@ -282,7 +294,12 @@ export default function DashboardPage() {
       {/* Recent Alerts Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Alerts</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Recent Alerts</CardTitle>
+            <a href="/dashboard/alerts" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+              View All →
+            </a>
+          </div>
         </CardHeader>
         <CardContent>
           {alerts.length > 0 ? (
