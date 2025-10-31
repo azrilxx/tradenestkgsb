@@ -1,7 +1,6 @@
 # Netlify configuration for TradeNest
 [build]
   command = "npm run build"
-  publish = ".next"
 
 # Netlify Next.js Runtime
 [[plugins]]
