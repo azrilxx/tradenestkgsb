@@ -20,6 +20,7 @@ export interface ChartOptions {
   gridColor?: string;
   title?: string;
   subtitle?: string;
+  color?: string;
 }
 
 /**

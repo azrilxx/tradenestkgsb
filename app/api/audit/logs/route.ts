@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     const entityType = searchParams.get('entity_type');
     const limit = parseInt(searchParams.get('limit') || '100');
 
-    let query = supabasePs
+    let query = supabase
       .from('audit_logs')
       .select('*')
       .order('timestamp', { ascending: false })

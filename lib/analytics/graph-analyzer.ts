@@ -85,6 +85,7 @@ async function buildNetworkGraph(
       .from('alerts')
       .select(`
         id,
+        created_at,
         anomalies (
           id,
           type,

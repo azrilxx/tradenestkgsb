@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
 
     if (hs_codes) {
       // Analyze impact on specific HS codes

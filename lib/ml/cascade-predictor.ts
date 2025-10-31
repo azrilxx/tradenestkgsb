@@ -272,7 +272,7 @@ function identifyRiskFactors(
     factors.push('Multiple connection points');
   }
 
-  const topCentrality = Math.max(...Object.values(networkMetrics?.centrality_scores || {}));
+  const topCentrality = Math.max(...(Object.values(networkMetrics?.centrality_scores || {}) as number[]));
   if (topCentrality > 0.5) {
     factors.push('High network centrality');
   }
@@ -286,7 +286,7 @@ function identifyRiskFactors(
   }
 
   if (multiHopPaths?.length > 0) {
-    const maxHops = Math.max(...multiHopPaths.map(p => p.hops || 0));
+    const maxHops = Math.max(...multiHopPaths.map((p: any) => p.hops || 0));
     if (maxHops >= 3) {
       factors.push('Deep multi-hop connections (3+ hops)');
     }

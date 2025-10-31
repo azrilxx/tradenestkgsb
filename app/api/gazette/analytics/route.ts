@@ -14,7 +14,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
  */
 export async function GET(request: Request) {
   try {
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
 
     // Fetch all required analytics data in parallel
     const [

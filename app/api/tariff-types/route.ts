@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function GET(request: Request) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     const { data, error } = await supabase
       .from('tariff_types')

@@ -77,10 +77,14 @@ export default function AnalyticsPage() {
             <div className="hidden md:inline">
               <strong>Sources:</strong>
               <span className="mx-1">BNM FX</span>
-              <Info className="inline w-3 h-3 text-blue-400 align-text-top" title="Bank Negara Malaysia FX rates" />
+              <span title="Bank Negara Malaysia FX rates">
+                <Info className="inline w-3 h-3 text-blue-400 align-text-top" />
+              </span>
               ({dataHealth.sources?.fx_rates?.status}) |
               <span className="mx-1">MATRADE</span>
-              <Info className="inline w-3 h-3 text-blue-400 align-text-top" title="MATRADE trade statistics" />
+              <span title="MATRADE trade statistics">
+                <Info className="inline w-3 h-3 text-blue-400 align-text-top" />
+              </span>
               ({dataHealth.sources?.trade_statistics?.status})
             </div>
             <div className="inline-block">

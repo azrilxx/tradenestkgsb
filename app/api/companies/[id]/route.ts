@@ -79,7 +79,7 @@ export async function GET(
     const companyId = id;
 
     // Create Supabase client for server-side use
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
 
     // Fetch company basic info
     const { data: company, error: companyError } = await supabase
@@ -181,17 +181,6 @@ export async function GET(
       shipmentsError = null;
     }
 
-    if (shipmentsError) {
-      console.error('Final shipment fetch error:', shipmentsError);
-      return NextResponse.json(
-        {
-          error: 'Failed to fetch shipments',
-          details: shipmentsError.message
-        },
-        { status: 500 }
-      );
-    }
-
     // If no shipments, return empty profile but don't error
     if (!shipments || shipments.length === 0) {
       return NextResponse.json({
@@ -264,7 +253,7 @@ export async function GET(
       return acc;
     }, {} as Record<string, { hs_code: string; description: string; shipments: number; total_value: number }>);
 
-    const topProducts = Object.values(productStats)
+    const topProducts = (Object.values(productStats) as Array<{ hs_code: string; description: string; shipments: number; total_value: number }>)
       .sort((a, b) => b.shipments - a.shipments)
       .slice(0, 5)
       .map((p) => ({
@@ -283,7 +272,7 @@ export async function GET(
       return acc;
     }, {} as Record<string, { vessel_name: string; shipments: number; total_weight: number }>);
 
-    const topCarriers = Object.values(carrierStats)
+    const topCarriers = (Object.values(carrierStats) as Array<{ vessel_name: string; shipments: number; total_weight: number }>)
       .sort((a, b) => b.shipments - a.shipments)
       .slice(0, 5)
       .map((c) => ({
@@ -304,7 +293,7 @@ export async function GET(
       return acc;
     }, {} as Record<string, { month: string; shipments: number; total_value: number; total_price: number; count: number }>);
 
-    const shippingActivity = Object.values(monthlyActivity)
+    const shippingActivity = (Object.values(monthlyActivity) as Array<{ month: string; shipments: number; total_value: number; total_price: number; count: number }>)
       .map((m) => ({
         month: m.month,
         shipments: m.shipments,
@@ -325,7 +314,7 @@ export async function GET(
       return acc;
     }, {} as Record<string, { country: string; shipments: number; total_value: number }>);
 
-    const countryDistribution = Object.values(countryStats)
+    const countryDistribution = (Object.values(countryStats) as Array<{ country: string; shipments: number; total_value: number }>)
       .sort((a, b) => b.shipments - a.shipments)
       .slice(0, 5)
       .map((c) => ({

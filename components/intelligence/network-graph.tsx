@@ -163,7 +163,6 @@ export function NetworkGraph({
           graphData={graphData}
           linkWidth={(link: any) => link.width}
           linkColor={(link: any) => link.color}
-          linkOpacity={0.6}
           linkDirectionalArrowLength={6}
           linkDirectionalArrowRelPos={0.5}
           nodeLabel={(node: any) => {

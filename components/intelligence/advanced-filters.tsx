@@ -97,7 +97,7 @@ export function AdvancedFilters({
               {timeWindows.map(window => (
                 <Button
                   key={window}
-                  variant={timeWindow === window ? 'default' : 'outline'}
+                  variant={timeWindow === window ? 'primary' : 'outline'}
                   size="sm"
                   onClick={() => onTimeWindowChange(window)}
                   className="text-xs"

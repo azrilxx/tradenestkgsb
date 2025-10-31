@@ -31,7 +31,7 @@ export async function downloadAndParsePdf(pdfUrl: string): Promise<ParsedGazette
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const pdfData = await pdfParse.default(buffer);
+    const pdfData = await (pdfParse as any)(buffer);
 
     console.log(`PDF parsed: ${pdfData.numpages} pages, ${pdfData.text.length} characters`);
 

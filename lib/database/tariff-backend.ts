@@ -7,12 +7,6 @@ import { createClient } from '@/lib/supabase/server';
 import type { HSCode, HSCodeDetail, HSSearchResult } from './tariff';
 
 export class TariffBackend {
-  private supabase;
-
-  constructor() {
-    this.supabase = createClient();
-  }
-
   /**
    * Search HS codes with full-text search
    */
@@ -31,6 +25,7 @@ export class TariffBackend {
       totalPages: number;
     };
   }> {
+    const supabase = await createClient();
     const {
       by = 'both',
       tariffType,
@@ -42,7 +37,7 @@ export class TariffBackend {
     const offset = (page - 1) * limit;
 
     // Build search query based on 'by' parameter
-    let hsCodesQuery = this.supabase
+    let hsCodesQuery = supabase
       .from('hs_codes')
       .select('*', { count: 'exact' });
 
@@ -106,10 +101,11 @@ export class TariffBackend {
     origin?: string;
     year?: number;
   } = {}): Promise<HSCodeDetail | null> {
+    const supabase = await createClient();
     const { tariffType, origin, year = new Date().getFullYear() } = options;
 
     // Find HS code
-    const { data: hsCode, error } = await this.supabase
+    const { data: hsCode, error } = await supabase
       .from('hs_codes')
       .select('*')
       .or(`code8.eq.${code},code10.eq.${code}`)
@@ -131,14 +127,14 @@ export class TariffBackend {
     const rulesOfOrigin = await this.getRulesOfOrigin(hsCode.id);
 
     // Get Indirect Tax
-    const { data: indirectTax } = await this.supabase
+    const { data: indirectTax } = await supabase
       .from('indirect_tax')
       .select('*')
       .eq('hs_code_id', hsCode.id)
       .single();
 
     // Get Restrictions
-    const { data: restrictions } = await this.supabase
+    const { data: restrictions } = await supabase
       .from('restrictions')
       .select('*')
       .eq('hs_code_id', hsCode.id)
@@ -158,8 +154,9 @@ export class TariffBackend {
    * Get tariff summary for an HS code
    */
   private async getTariffSummary(hsCodeId: string, year: number) {
+    const supabase = await createClient();
     // Get MFN rate
-    const { data: mfnRate } = await this.supabase
+    const { data: mfnRate } = await supabase
       .from('duty_rates')
       .select('ad_valorem')
       .eq('hs_code_id', hsCodeId)
@@ -169,14 +166,14 @@ export class TariffBackend {
       .single();
 
     // Get FTA count
-    const { count: ftaCount } = await this.supabase
+    const { count: ftaCount } = await supabase
       .from('fta_staging')
       .select('*', { count: 'exact', head: true })
       .eq('hs_code_id', hsCodeId)
       .eq('year', year);
 
     // Check restrictions
-    const { data: restriction } = await this.supabase
+    const { data: restriction } = await supabase
       .from('restrictions')
       .select('import_prohibited, export_prohibited')
       .eq('hs_code_id', hsCodeId)
@@ -195,7 +192,8 @@ export class TariffBackend {
    * Get MFN rates
    */
   private async getMFNRates(hsCodeId: string) {
-    const { data } = await this.supabase
+    const supabase = await createClient();
+    const { data } = await supabase
       .from('duty_rates')
       .select(`
         *,
@@ -221,7 +219,8 @@ export class TariffBackend {
    * Get FTA rates
    */
   private async getFTARates(hsCodeId: string, tariffType: string, year: number) {
-    const { data } = await this.supabase
+    const supabase = await createClient();
+    const { data } = await supabase
       .from('fta_staging')
       .select(`
         *,
@@ -234,11 +233,13 @@ export class TariffBackend {
 
     return (data || []).map((r: any) => ({
       tariff_type: r.tariff_types,
-      year: r.year,
-      pref_ad_valorem: r.pref_ad_valorem,
-      pref_specific: r.pref_specific,
+      ad_valorem: r.pref_ad_valorem,
+      specific: r.pref_specific,
       unit: r.unit,
       note: r.note,
+      effective_from: r.year?.toString() || new Date().getFullYear().toString(),
+      effective_to: null,
+      year: r.year,
     }));
   }
 
@@ -246,7 +247,8 @@ export class TariffBackend {
    * Get Rules of Origin
    */
   private async getRulesOfOrigin(hsCodeId: string) {
-    const { data } = await this.supabase
+    const supabase = await createClient();
+    const { data } = await supabase
       .from('rules_of_origin')
       .select(`
         *,
@@ -257,9 +259,14 @@ export class TariffBackend {
       .eq('hs_code_id', hsCodeId);
 
     return (data || []).map((r: any) => ({
-      tariff_type: r.tariff_types,
+      id: r.id,
+      tariff_type_id: r.tariff_type_id,
+      hs_code_id: r.hs_code_id,
       rule_text: r.rule_text,
       cumulation_text: r.cumulation_text,
+      created_at: r.created_at,
+      updated_at: r.updated_at,
+      tariff_type: r.tariff_types,
     }));
   }
 
@@ -267,7 +274,8 @@ export class TariffBackend {
    * Get tariff type ID by code
    */
   private async getTariffTypeId(code: string): Promise<string | null> {
-    const { data } = await this.supabase
+    const supabase = await createClient();
+    const { data } = await supabase
       .from('tariff_types')
       .select('id')
       .eq('code', code)

@@ -212,8 +212,11 @@ export default function IntelligenceDashboard() {
     try {
       generateAndDownloadIntelligenceReport({
         alertId,
-        intelligence,
-        tierLimit: intelligence.tier_limit || false,
+        intelligence: {
+          ...intelligence,
+          correlation_matrix: (intelligence as any).correlation_matrix || {},
+        },
+        tierLimit: (intelligence as any).tier_limit || false,
       });
     } catch (err) {
       console.error('Error exporting PDF:', err);
@@ -488,7 +491,7 @@ export default function IntelligenceDashboard() {
       {loading && <LoadingSkeleton />}
 
       {/* Tier Limit Notice */}
-      {intelligence && intelligence.tier_limit && (
+      {intelligence && (intelligence as any).tier_limit && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-center gap-2">
             <span className="text-blue-600 font-semibold">Free Tier:</span>
@@ -577,7 +580,7 @@ export default function IntelligenceDashboard() {
                   <Button
                     onClick={exportPDF}
                     disabled={exporting || !intelligence}
-                    variant="default"
+                    variant="primary"
                     className="flex-1"
                   >
                     <FileText className="h-4 w-4 mr-2" />
@@ -602,7 +605,7 @@ export default function IntelligenceDashboard() {
                     JSON
                   </Button>
                 </div>
-                {intelligence?.tier_limit && (
+                 {(intelligence as any)?.tier_limit && (
                   <p className="text-xs text-gray-500">
                     Free tier: PDF shows top 5 connections only
                   </p>
@@ -624,7 +627,7 @@ export default function IntelligenceDashboard() {
                     <Button
                       onClick={getMLPredictions}
                       disabled={loadingPredictions || !intelligence}
-                      variant="default"
+                      variant="primary"
                       className="w-full"
                     >
                       <Zap className="h-4 w-4 mr-2" />
@@ -917,7 +920,7 @@ export default function IntelligenceDashboard() {
                 onClick={() => setShowComparison(true)}
                 disabled={compareAlerts.length < 2}
                 className="w-full text-sm"
-                variant="default"
+                variant="primary"
               >
                 View Comparison
               </Button>

@@ -41,7 +41,7 @@ export async function GET(request: Request) {
         const { data, error } = await supabase
           .from('fx_rates')
           .upsert({
-            currency_pair: rate.currency_pair,
+            currency_pair: `${rate.base_currency}/${rate.target_currency}`,
             rate: rate.rate,
             date: rate.date,
             source: 'BNM', // Add source attribution
@@ -93,7 +93,7 @@ export async function POST() {
       const { error } = await supabase
         .from('fx_rates')
         .upsert({
-          currency_pair: rate.currency_pair,
+          currency_pair: `${rate.base_currency}/${rate.target_currency}`,
           rate: rate.rate,
           date: rate.date,
           source: 'BNM', // Add source attribution
@@ -102,7 +102,7 @@ export async function POST() {
         });
 
       if (!error) {
-        storedCount.push(rate.currency_pair);
+        storedCount.push(`${rate.base_currency}/${rate.target_currency}`);
       }
     }
 

@@ -145,7 +145,7 @@ export async function checkUsageLimit(userId: string): Promise<UsageData> {
     .gte('created_at', startOfMonth.toISOString());
 
   const currentMonthCount = count || 0;
-  const monthlyLimit = subscription.usage_limits.analyses_per_month;
+  const monthlyLimit = subscription?.usage_limits?.analyses_per_month || 0;
 
   return {
     current_month_count: currentMonthCount,

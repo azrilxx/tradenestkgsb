@@ -27,7 +27,7 @@ export async function GET(
       );
     }
 
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Normalize and find the HS code
     const normalizedCode = normalizeHSCode(code);

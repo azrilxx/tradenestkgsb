@@ -115,7 +115,7 @@ export function SubscriptionBanner({
               <div className="flex gap-2">
                 <Button
                   onClick={onUpgrade}
-                  variant="default"
+                  variant="primary"
                   className={`${colors.accent} text-white`}
                 >
                   Upgrade to Professional
@@ -204,7 +204,7 @@ export function UsageLimitBanner({
         </div>
         <div className="flex gap-2">
           {reachedLimit && onUpgrade && (
-            <Button onClick={onUpgrade} variant="default">
+            <Button onClick={onUpgrade} variant="primary">
               Upgrade
             </Button>
           )}
@@ -263,7 +263,7 @@ export function FeatureLockModal({
         <div className="flex gap-2">
           <Button
             onClick={onUpgrade}
-            variant="default"
+            variant="primary"
             className="flex-1"
           >
             Upgrade to {requiredTier}

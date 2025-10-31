@@ -60,7 +60,7 @@ export async function enrichAlertContext(
     // Parallel enrichment
     const [companyProfile, newsSentiment, marketContext, economicIndicators] = await Promise.all([
       companyIdToUse ? enrichCompanyProfile(companyIdToUse) : Promise.resolve(null),
-      newsSentiment ? enrichNewsSentiment(companyIdToUse) : Promise.resolve(null),
+      companyIdToUse ? enrichNewsSentiment(companyIdToUse) : Promise.resolve(null),
       productIdToUse ? enrichMarketContext(productIdToUse) : Promise.resolve(null),
       enrichEconomicIndicators(productIdToUse),
     ]);

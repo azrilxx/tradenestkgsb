@@ -273,7 +273,24 @@ export async function getAlertStatistics(): Promise<{
       `);
 
     if (error || !alerts) {
-      return null;
+      return {
+        total: 0,
+        new: 0,
+        viewed: 0,
+        resolved: 0,
+        bySeverity: {
+          low: 0,
+          medium: 0,
+          high: 0,
+          critical: 0,
+        } as Record<AnomalySeverity, number>,
+        byType: {
+          price_spike: 0,
+          tariff_change: 0,
+          freight_surge: 0,
+          fx_volatility: 0,
+        } as Record<AnomalyType, number>,
+      };
     }
 
     const stats = {

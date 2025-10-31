@@ -111,7 +111,7 @@ class AnalysisCache {
   /**
    * Cleanup expired entries
    */
-  cleanup(): void {
+  cleanup(): number {
     const now = Date.now();
     const keysToDelete: string[] = [];
 
@@ -144,7 +144,7 @@ export function memoizeAnalysis<T extends (...args: any[]) => Promise<any>>(
   fn: T,
   ttl: number = 15 * 60 * 1000
 ): T {
-  return async (...args: any[]): Promise<any> => {
+  return (async (...args: any[]): Promise<any> => {
     const key = JSON.stringify(args);
 
     // Check cache
@@ -160,7 +160,7 @@ export function memoizeAnalysis<T extends (...args: any[]) => Promise<any>>(
     console.log('[Cache Miss]', key);
 
     return result;
-  };
+  }) as T;
 }
 
 export default analysisCache;

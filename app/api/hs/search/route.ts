@@ -27,10 +27,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Build search query
-    let hsCodesQuery = supabase
+    let hsCodesQuery: any = supabase
       .from('hs_codes')
       .select('*', { count: 'exact' });
 
@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    let isRpcQuery = false;
     if (searchBy === 'description' || (searchBy === 'both' && !query.match(/^\d+$/))) {
       // Use full-text search for descriptions
       const textSearch = searchBy === 'description';
@@ -53,15 +54,18 @@ export async function GET(request: NextRequest) {
         hsCodesQuery = supabase.rpc('search_hs_descriptions', {
           search_query: query,
           search_limit: limit * 2 // Get more for filtering
-        });
+        }) as any;
+        isRpcQuery = true;
       } else {
         // Default to ILIKE for simple description search
         hsCodesQuery = hsCodesQuery.ilike('description', `%${query}%`);
       }
     }
 
-    // Apply pagination
-    hsCodesQuery = hsCodesQuery.range(offset, offset + limit - 1);
+    // Apply pagination (only if not RPC query)
+    if (!isRpcQuery) {
+      hsCodesQuery = hsCodesQuery.range(offset, offset + limit - 1);
+    }
 
     const { data: hsCodes, error: hsError, count } = await hsCodesQuery;
 

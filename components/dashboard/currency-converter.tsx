@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Swap, Download, TrendingUp, TrendingDown } from 'lucide-react';
+import { ArrowLeftRight, Download, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface ExchangeRate {
   currency_pair: string;
@@ -176,7 +176,7 @@ export function CurrencyConverter() {
               size="sm"
               className="rounded-full"
             >
-              <Swap className="w-4 h-4" />
+              <ArrowLeftRight className="w-4 h-4" />
             </Button>
           </div>
 

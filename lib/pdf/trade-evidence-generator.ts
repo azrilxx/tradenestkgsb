@@ -96,7 +96,7 @@ export class TradeEvidenceGenerator extends EvidenceGenerator {
     this.yPosition += 12;
   }
 
-  private addExecutiveSummary(data: TradeIntelligenceData) {
+  protected addExecutiveSummary(data: TradeIntelligenceData) {
     this.doc.setFontSize(16);
     this.doc.setTextColor(17, 24, 39);
     this.doc.text('Executive Summary', this.margin, this.yPosition);
@@ -354,7 +354,7 @@ export class TradeEvidenceGenerator extends EvidenceGenerator {
     this.yPosition += 8;
   }
 
-  private addFooter() {
+  protected addFooter() {
     const currentPage = this.doc.getCurrentPageInfo().pageNumber;
     const totalPages = (this.doc as any).internal.pages.length;
 

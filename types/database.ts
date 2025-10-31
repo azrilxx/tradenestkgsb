@@ -215,7 +215,7 @@ export interface TradePartner {
 export interface RuleCondition {
   field: string;
   operator: string;
-  value: number | string | [number, number];
+  value: number | string | [number, number] | string[];
   period?: string;
 }
 

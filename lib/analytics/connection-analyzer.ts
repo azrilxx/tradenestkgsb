@@ -171,19 +171,19 @@ export async function analyzeInterconnectedIntelligence(
     connectedFactors.push(...patternRelated);
 
     // NEW: Find cross-product correlations (sector-wide patterns)
-    const crossProductRelated = findCrossProductCorrelations(primaryAnomaly, relatedAlerts);
+    const crossProductRelated = findCrossProductCorrelations(primaryAnomaly, relatedAlerts || []);
     connectedFactors.push(...crossProductRelated);
 
     // NEW: Find geographic proximity correlations
-    const geographicRelated = findGeographicCorrelations(primaryAnomaly, relatedAlerts);
+    const geographicRelated = findGeographicCorrelations(primaryAnomaly, relatedAlerts || []);
     connectedFactors.push(...geographicRelated);
 
     // NEW: Detect circular dependencies
-    const circularDeps = detectCircularDependencies(primaryAnomaly, relatedAlerts);
+    const circularDeps = detectCircularDependencies(primaryAnomaly, relatedAlerts || []);
     connectedFactors.push(...circularDeps);
 
     // NEW: Historical pattern matching
-    const historicalMatches = findHistoricalPatterns(primaryAnomaly, relatedAlerts, cutoffDate);
+    const historicalMatches = findHistoricalPatterns(primaryAnomaly, relatedAlerts || [], cutoffDate);
     connectedFactors.push(...historicalMatches);
 
     // 3. Deduplicate and sort by correlation score

@@ -29,7 +29,7 @@ export interface ScrapedGazette {
  */
 export async function scrapeGazettes(limit: number = 50): Promise<ScrapedGazette[]> {
   const browser = await puppeteer.launch({
-    headless: 'new',
+    headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
   });
 
@@ -59,7 +59,7 @@ export async function scrapeGazettes(limit: number = 50): Promise<ScrapedGazette
         });
 
         // Wait for page to load
-        await page.waitForTimeout(5000);
+        await new Promise(resolve => setTimeout(resolve, 5000));
 
         // Try to find gazette entries
         gazettes = await page.evaluate((limit) => {
