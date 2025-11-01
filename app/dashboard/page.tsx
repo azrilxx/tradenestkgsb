@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { KPICard } from '@/components/dashboard/kpi-card';
 import { AlertsTable } from '@/components/dashboard/alerts-table';
 import { SeverityChart } from '@/components/dashboard/severity-chart';
+import { SeverityChartV2 } from '@/components/dashboard/severity-chart-v2';
+import { TypeChartV2 } from '@/components/dashboard/type-chart-v2';
 import { TrendChart } from '@/components/dashboard/trend-chart';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -232,13 +234,17 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <SeverityChart
+              <SeverityChartV2
                 data={[
-                  { severity: 'Critical', count: stats.bySeverity?.critical || 0, color: '#EF4444' },
-                  { severity: 'High', count: stats.bySeverity?.high || 0, color: '#F97316' },
-                  { severity: 'Medium', count: stats.bySeverity?.medium || 0, color: '#EAB308' },
-                  { severity: 'Low', count: stats.bySeverity?.low || 0, color: '#3B82F6' },
+                  { severity: 'Critical', count: stats.bySeverity?.critical || 0, color: '#EF4444', trend: 12 },
+                  { severity: 'High', count: stats.bySeverity?.high || 0, color: '#F97316', trend: -5 },
+                  { severity: 'Medium', count: stats.bySeverity?.medium || 0, color: '#EAB308', trend: 0 },
+                  { severity: 'Low', count: stats.bySeverity?.low || 0, color: '#3B82F6', trend: 8 },
                 ]}
+                onClickSeverity={(severity) => {
+                  console.log(`Filtering by ${severity} severity`);
+                  // TODO: Implement filtering
+                }}
               />
             </CardContent>
           </Card>
@@ -248,24 +254,18 @@ export default function DashboardPage() {
               <CardTitle>Alerts by Type</CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="font-medium">💰 Price Spikes</span>
-                  <span className="text-2xl font-bold text-gray-900">{stats.byType?.price_spike || 0}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="font-medium">📊 Tariff Changes</span>
-                  <span className="text-2xl font-bold text-gray-900">{stats.byType?.tariff_change || 0}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="font-medium">🚢 Freight Surges</span>
-                  <span className="text-2xl font-bold text-gray-900">{stats.byType?.freight_surge || 0}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="font-medium">💱 FX Volatility</span>
-                  <span className="text-2xl font-bold text-gray-900">{stats.byType?.fx_volatility || 0}</span>
-                </div>
-              </div>
+              <TypeChartV2
+                data={[
+                  { type: 'price_spike', count: stats.byType?.price_spike || 0 },
+                  { type: 'tariff_change', count: stats.byType?.tariff_change || 0 },
+                  { type: 'freight_surge', count: stats.byType?.freight_surge || 0 },
+                  { type: 'fx_volatility', count: stats.byType?.fx_volatility || 0 },
+                ]}
+                onClickType={(type) => {
+                  console.log(`Filtering by ${type} type`);
+                  // TODO: Implement filtering
+                }}
+              />
             </CardContent>
           </Card>
         </div>
