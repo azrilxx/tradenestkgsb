@@ -15,10 +15,28 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<any>(null);
   const [alerts, setAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [trends, setTrends] = useState<any[]>([]);
+  const [timeRange, setTimeRange] = useState<string>('7'); // Default to 7 days
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  useEffect(() => {
+    fetchTrends(timeRange);
+  }, [timeRange]);
+
+  const fetchTrends = async (days: string) => {
+    try {
+      const trendsRes = await fetch(`/api/alerts/trends?days=${days}`);
+      const trendsData = await trendsRes.json();
+      if (trendsData.success && trendsData.data?.trends) {
+        setTrends(trendsData.data.trends);
+      }
+    } catch (error) {
+      console.error('Error fetching trends:', error);
+    }
+  };
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -32,6 +50,9 @@ export default function DashboardPage() {
       const alertsRes = await fetch('/api/alerts?limit=10');
       const alertsData = await alertsRes.json();
       setAlerts(alertsData.data || []);
+
+      // Fetch trends
+      fetchTrends(timeRange);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -131,6 +152,23 @@ export default function DashboardPage() {
     );
   }
 
+  // Calculate trends from historical data
+  const calculateTrend = (currentCount: number, severity: string) => {
+    if (!trends || trends.length < 2) return undefined;
+    
+    // Get last period's average (first half of trends)
+    const firstHalf = trends.slice(0, Math.floor(trends.length / 2));
+    const secondHalf = trends.slice(Math.floor(trends.length / 2));
+    
+    const firstHalfAvg = firstHalf.reduce((sum, day) => sum + (day[severity.toLowerCase()] || 0), 0) / firstHalf.length;
+    const secondHalfAvg = secondHalf.reduce((sum, day) => sum + (day[severity.toLowerCase()] || 0), 0) / secondHalf.length;
+    
+    if (firstHalfAvg === 0) return secondHalfAvg > 0 ? 100 : undefined;
+    
+    const trend = Math.round(((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100);
+    return trend !== 0 ? trend : undefined;
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Header */}
@@ -140,10 +178,14 @@ export default function DashboardPage() {
           <p className="text-gray-500 text-sm mt-1.5">Monitor trade anomalies and alerts in real-time</p>
         </div>
         <div className="flex items-center gap-3">
-          <select className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-shadow">
-            <option>Last 7 days</option>
-            <option>Last 30 days</option>
-            <option>Last 90 days</option>
+          <select 
+            value={timeRange}
+            onChange={(e) => setTimeRange(e.target.value)}
+            className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm hover:shadow-md transition-shadow"
+          >
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
           </select>
           <Button onClick={fetchDashboardData} className="flex items-center gap-2 hover:shadow-md transition-shadow">
             <RefreshCw className="w-4 h-4" />
@@ -236,10 +278,10 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <SeverityChartV2
                 data={[
-                  { severity: 'Critical', count: stats.bySeverity?.critical || 0, color: '#EF4444', trend: 12 },
-                  { severity: 'High', count: stats.bySeverity?.high || 0, color: '#F97316', trend: -5 },
-                  { severity: 'Medium', count: stats.bySeverity?.medium || 0, color: '#EAB308', trend: 0 },
-                  { severity: 'Low', count: stats.bySeverity?.low || 0, color: '#3B82F6', trend: 8 },
+                  { severity: 'Critical', count: stats.bySeverity?.critical || 0, color: '#EF4444', trend: calculateTrend(stats.bySeverity?.critical || 0, 'Critical') },
+                  { severity: 'High', count: stats.bySeverity?.high || 0, color: '#F97316', trend: calculateTrend(stats.bySeverity?.high || 0, 'High') },
+                  { severity: 'Medium', count: stats.bySeverity?.medium || 0, color: '#EAB308', trend: calculateTrend(stats.bySeverity?.medium || 0, 'Medium') },
+                  { severity: 'Low', count: stats.bySeverity?.low || 0, color: '#3B82F6', trend: calculateTrend(stats.bySeverity?.low || 0, 'Low') },
                 ]}
                 onClickSeverity={(severity) => {
                   console.log(`Filtering by ${severity} severity`);
